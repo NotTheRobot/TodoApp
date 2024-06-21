@@ -1,45 +1,40 @@
 package com.nottherobot.todoapp.repository
 
-import androidx.compose.runtime.mutableIntStateOf
 import com.nottherobot.todoapp.models.ui.Importance
 import com.nottherobot.todoapp.models.ui.TodoItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.random.Random
 
-class TodoItemsRepository(
-){
-    private val currentContext: CoroutineScope = CoroutineScope(Dispatchers.Default)
+class TodoItemsRepository{
+    private val currentContext: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val src = mutableListOf<TodoItem>()
-    val todoItems = MutableStateFlow<List<TodoItem>>(mutableListOf())
 
-    val todoItemsDone = mutableIntStateOf(0)
+    private val _todoItems = MutableStateFlow<List<TodoItem>>(mutableListOf())
+    val todoItems: StateFlow<List<TodoItem>>
+        get() = _todoItems.asStateFlow()
 
     init {
         currentContext.launch {
             src.addAll(generateItems())
-            todoItemsDone.intValue = src.count { it.isDone }
-            todoItems.value = src.sortedByImportance()
+            _todoItems.value = src.toList()
         }
     }
 
     fun addTodoItem(item: TodoItem){
         src.add(item)
-        todoItems.value = src.sortedByImportance()
+        _todoItems.value = src.toList()
     }
 
     fun updateTodoItem(item: TodoItem) {
-        if (item.isDone) {
-            todoItemsDone.intValue++
-        } else {
-            todoItemsDone.intValue--
-        }
         var i = 0
         while (i < src.size) {
             if (src[i].id == item.id) {
@@ -48,23 +43,17 @@ class TodoItemsRepository(
             }
             i++
         }
-        if(i == src.size){
+        if(i == src.toList().size){
             throw Exception("No such element")
         }
-        todoItems.value = src.sortedByImportance()
+        _todoItems.value = src.toList()
     }
 
     fun removeTodoItem(item: TodoItem) {
-        if(item.isDone){
-            todoItemsDone.intValue--
-        }
         src.remove(item)
-        todoItems.value = src.sortedByImportance()
+        _todoItems.value = src.toList()
     }
 
-    fun List<TodoItem>.sortedByImportance(): List<TodoItem>{
-        return this.sortedByDescending { it.importance.order }
-    }
     private fun generateItems(): MutableList<TodoItem> {
         val text = listOf(
             "маленький текст",

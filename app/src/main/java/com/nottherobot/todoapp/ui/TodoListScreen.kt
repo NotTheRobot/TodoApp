@@ -110,13 +110,13 @@ fun TodoListScreen(
             list,
             { todoItem, b -> vm.onCheckboxClicked(todoItem, b)},
             { navigateToEditTodo(it) },
-            vm.isShowDoneState,
+            vm.isShowDone,
             nestedScrollConnection
         )
         TodoListHeader(
             vm.doneTasksCount,
-            vm.isShowDoneState,
-            )
+            vm.isShowDone,
+        )
         FloatingActionButton(
             onClick = { navigateToEditTodo(null) },
             modifier = Modifier

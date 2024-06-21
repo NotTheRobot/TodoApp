@@ -31,11 +31,13 @@ class EditTodoViewModel(
 
     init {
         viewModelScope.launch {
-            repository.todoItems.map { lst ->
-                lst.find { it.id == id }
-            }.collect {
+            repository.todoItems
+                .map { lst ->
+                    lst.find { it.id == id }
+                }
+                .collect {
                 item.value = it
-                if(item.value != null){
+                if(item.value != null) {
                     text.value = item.value!!.text
                     importance.value = item.value!!.importance
                     deadlineDate.value = item.value!!.deadlineDate

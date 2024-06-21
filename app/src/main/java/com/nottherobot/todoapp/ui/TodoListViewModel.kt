@@ -1,5 +1,6 @@
 package com.nottherobot.todoapp.ui
 
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -11,21 +12,25 @@ import com.nottherobot.todoapp.MainApplication
 import com.nottherobot.todoapp.models.ui.TodoItem
 import com.nottherobot.todoapp.repository.TodoItemsRepository
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 class TodoListViewModel(
     private val repository: TodoItemsRepository
 ): ViewModel() {
 
-    var todoList = repository.todoItems
+    val todoList = repository.todoItems
+        .map { lst ->
+            doneTasksCount.intValue = lst.count { it.isDone }
+            lst.sortedByImportance()
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(),
             initialValue = listOf()
         )
-
-    val doneTasksCount = repository.todoItemsDone
-    val isShowDoneState = mutableStateOf<Boolean>(true)
+    val doneTasksCount = mutableIntStateOf(0)
+    val isShowDone = mutableStateOf<Boolean>(true)
 
     private fun updateTask(item: TodoItem){
         repository.updateTodoItem(item)
@@ -38,6 +43,10 @@ class TodoListViewModel(
     fun onCheckboxClicked(item: TodoItem, isDone: Boolean){
         val newItem = item.copy(isDone = isDone)
         updateTask(newItem)
+    }
+
+    private fun List<TodoItem>.sortedByImportance(): List<TodoItem>{
+        return this.sortedByDescending { it.importance.order }
     }
 
     companion object {
