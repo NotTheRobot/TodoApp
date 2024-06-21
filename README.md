@@ -1,4 +1,4 @@
 
-![gas-kvas-com-p-smailik-pistoleta-na-prozrachnom-fone-30](https://github.com/NotTheRobot/TodoApp/assets/81047539/198436a8-ff15-41aa-ab02-c5b813d5fd01)
+![1682524158_papik-pro-p-smail-s-pistoletom-v-rukakh-png-5 (1)](https://github.com/NotTheRobot/TodoApp/assets/81047539/3051ab70-24f7-475b-944a-d36b3b388e2c)
 
 Ты на странице школьника яндекса. Если ты не яндексоид, иди своей дорогой, путник. Если ты свой, то проходи, у меня здесь куча говнокода, который надо ревьюить
