@@ -25,11 +25,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.internal.composableLambdaNInstance
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +41,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -128,7 +131,9 @@ fun TodoListScreen(
             Image(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp))
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(id = R.color.white))
+            )
         }
     }
 }
@@ -192,10 +197,11 @@ fun TodoListHeader(
                     }
             ) {
                 Image(
-                    imageVector = ImageVector.vectorResource(
-                        id = if (isChecked) R.drawable.eye_closed else R.drawable.eye_open
-                    ),
+                    painter = painterResource(id = if (isChecked) R.drawable.eye_closed else R.drawable.eye_open),
                     contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    colorFilter = ColorFilter.tint(colorResource(id = R.color.blue))
+                
                 )
             }
         }
@@ -270,6 +276,13 @@ fun TodoItem(
         R.drawable.unchecked_checkbox_default
     }
 
+    val checkboxDrawableColor = if (item.isDone) {
+        R.color.green
+    } else if(item.importance == Importance.High){
+        R.color.red
+    }else{
+        R.color.support_separator
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -283,8 +296,10 @@ fun TodoItem(
             onCheckedChange = { isDone -> onCheckboxClick(item, isDone) },
         ) {
             Image(
-                imageVector = ImageVector.vectorResource(id = checkboxDrawableId),
+                painter = painterResource(id = checkboxDrawableId),
                 contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(checkboxDrawableColor))
             )
         }
 
@@ -296,9 +311,11 @@ fun TodoItem(
         ) {
             Row {
                 if(item.importance != Importance.Default){
-                    Image(imageVector = ImageVector.vectorResource(
+                    Image(painter = painterResource(
                         id = if(item.importance == Importance.High) R.drawable.high_priority else R.drawable.low_priority),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(colorResource(id = if(item.importance == Importance.High) R.color.red else R.color.gray))
                     )
                 }
                 Text(
@@ -329,8 +346,10 @@ fun TodoItem(
             contentAlignment = Alignment.Center,
         ) {
             Image(
-                imageVector = ImageVector.vectorResource(id = R.drawable.info_outline),
+                painter = painterResource(id = R.drawable.info_outline),
                 contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(id = R.color.label_tertiary))
             )
         }
     }
