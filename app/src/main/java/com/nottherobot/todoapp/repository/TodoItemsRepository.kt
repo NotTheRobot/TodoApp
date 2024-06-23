@@ -1,5 +1,6 @@
 package com.nottherobot.todoapp.repository
 
+import android.util.Log
 import com.nottherobot.todoapp.models.ui.Importance
 import com.nottherobot.todoapp.models.ui.TodoItem
 import kotlinx.coroutines.CoroutineScope
@@ -8,13 +9,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.random.Random
 
 class TodoItemsRepository{
-    private val currentContext: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val repositoryScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val src = mutableListOf<TodoItem>()
 
@@ -23,7 +25,8 @@ class TodoItemsRepository{
         get() = _todoItems.asStateFlow()
 
     init {
-        currentContext.launch {
+        repositoryScope.launch {
+            Log.d("kekw", "repository thread: ${Thread.currentThread()}")
             src.addAll(generateItems())
             _todoItems.value = src.toList()
         }
@@ -54,7 +57,7 @@ class TodoItemsRepository{
         _todoItems.value = src.toList()
     }
 
-    private fun generateItems(): MutableList<TodoItem> {
+    private fun generateItems(): List<TodoItem> {
         val text = listOf(
             "маленький текст",
             """очень большой текст очень большой текст очень большой текст очень большой текст 

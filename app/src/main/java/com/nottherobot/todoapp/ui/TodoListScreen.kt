@@ -1,6 +1,5 @@
 package com.nottherobot.todoapp.ui
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconToggleButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
@@ -38,16 +36,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -62,6 +59,7 @@ import com.nottherobot.todoapp.NavigationDestination
 import com.nottherobot.todoapp.R
 import com.nottherobot.todoapp.models.ui.Importance
 import com.nottherobot.todoapp.models.ui.TodoItem
+import com.nottherobot.todoapp.ui.theme.AppTheme
 import java.time.format.DateTimeFormatter
 
 object TodoListScreen: NavigationDestination{
@@ -110,26 +108,8 @@ fun TodoListScreen(
         progress = 1f - currentOffset / maxPx,
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.back_primary)),
+            .background(AppTheme.colors.backPrimary),
     ) {
-        Box(
-            contentAlignment = Alignment.BottomCenter,
-            modifier = Modifier
-                .layoutId("headerBox")
-                .fillMaxWidth()
-        ){
-            Box(modifier = Modifier
-                .height(4.dp)
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        listOf(
-                            Color(0, 0, 0, 0x4D),
-                            Color.Transparent
-                        )
-                    )
-                ))
-        }
         TodoLazyList(
             list,
             { todoItem, b -> vm.onCheckboxClicked(todoItem, b)},
@@ -148,13 +128,13 @@ fun TodoListScreen(
                 .size(56.dp)
                 .layoutId("fab"),
             shape = CircleShape,
-            containerColor = colorResource(id = R.color.blue),
+            containerColor = AppTheme.colors.blue,
         ) {
             Image(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                colorFilter = ColorFilter.tint(colorResource(id = R.color.white))
+                colorFilter = ColorFilter.tint(AppTheme.colors.white)
             )
         }
     }
@@ -170,16 +150,18 @@ fun TodoListHeader(
 
     Text(
         text = stringResource(id = R.string.title_todo_list),
-        color = colorResource(id = R.color.label_primary),
+        modifier = Modifier.layoutId("title"),
+        color = AppTheme.colors.labelPrimary,
         fontSize = motionLayoutScope.customFontSize("title", "fontSize"),
+        fontWeight = FontWeight.W500,
         lineHeight = motionLayoutScope.customFontSize("title", "lineHeight"),
         letterSpacing = motionLayoutScope.customFontSize("title", "letterSpacing"),
-        modifier = Modifier.layoutId("title")
+
     )
     Text(
         text = stringResource(id = R.string.done) + " - ${doneTasksCount.intValue}",
-        color = colorResource(id = R.color.label_tertiary),
-        style = MaterialTheme.typography.bodyMedium,
+        color = AppTheme.colors.labelTertiary,
+        style = AppTheme.type.body,
         modifier = Modifier.layoutId("subtitle")
     )
     IconToggleButton(
@@ -195,14 +177,33 @@ fun TodoListHeader(
             painter = painterResource(id = if (isChecked) R.drawable.eye_closed else R.drawable.eye_open),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(colorResource(id = R.color.blue))
+            colorFilter = ColorFilter.tint(AppTheme.colors.blue)
         )
+    }
+    Box(
+        contentAlignment = Alignment.BottomCenter,
+        modifier = Modifier
+            .layoutId("headerBox")
+            .fillMaxWidth()
+    ){
+        Column {
+            Box(modifier = Modifier
+                .height(8.dp)
+                .fillMaxWidth()
+                .background(AppTheme.colors.backPrimary)
+            )
+            Box(modifier = Modifier
+                .height(4.dp)
+                .fillMaxWidth()
+                .background(brush = Brush.verticalGradient(AppTheme.colors.shadowGradient))
+            )
+        }
+
     }
 
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TodoLazyList(
     list: List<TodoItem>,
@@ -222,7 +223,7 @@ fun TodoLazyList(
         Box(modifier = Modifier
             .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(id = R.color.back_secondary))
+            .background(AppTheme.colors.backSecondary)
         ) {
             LazyColumn(
                 modifier = Modifier.nestedScroll(nestedScrollConnection)
@@ -247,8 +248,8 @@ fun TodoLazyList(
                         Text(
                             text = stringResource(id = R.string.new_task),
                             modifier = Modifier.padding(start = 48.dp),
-                            color = colorResource(id = R.color.label_tertiary),
-                            style = MaterialTheme.typography.bodyMedium
+                            color = AppTheme.colors.labelTertiary,
+                            style = AppTheme.type.body
                         )
                     }
                 }
@@ -264,21 +265,6 @@ fun TodoItem(
     onCheckboxClick: (TodoItem, Boolean) -> Unit,
     onItemClick: (String) -> Unit
 ){
-    val checkboxDrawableId = if (item.isDone) {
-        R.drawable.checked_checkbox
-    } else if(item.importance == Importance.High){
-        R.drawable.unchecked_checkbox_high_prior
-    }else{
-        R.drawable.unchecked_checkbox_default
-    }
-
-    val checkboxDrawableColor = if (item.isDone) {
-        R.color.green
-    } else if(item.importance == Importance.High){
-        R.color.red
-    }else{
-        R.color.support_separator
-    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -291,11 +277,25 @@ fun TodoItem(
             checked = item.isDone,
             onCheckedChange = { isDone -> onCheckboxClick(item, isDone) },
         ) {
+            val checkboxDrawableColor = if (item.isDone) {
+                AppTheme.colors.green
+            } else if(item.importance == Importance.High){
+                AppTheme.colors.red
+            }else{
+                AppTheme.colors.supportSeparator
+            }
+            val checkboxDrawableId = if (item.isDone) {
+                R.drawable.checked_checkbox
+            } else if(item.importance == Importance.High){
+                R.drawable.unchecked_checkbox_high_prior
+            }else{
+                R.drawable.unchecked_checkbox_default
+            }
             Image(
                 painter = painterResource(id = checkboxDrawableId),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                colorFilter = ColorFilter.tint(colorResource(checkboxDrawableColor))
+                colorFilter = ColorFilter.tint(checkboxDrawableColor)
             )
         }
 
@@ -311,15 +311,13 @@ fun TodoItem(
                         id = if(item.importance == Importance.High) R.drawable.high_priority else R.drawable.low_priority),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
-                        colorFilter = ColorFilter.tint(colorResource(id = if(item.importance == Importance.High) R.color.red else R.color.gray))
+                        colorFilter = ColorFilter.tint(if(item.importance == Importance.High) AppTheme.colors.red else AppTheme.colors.gray)
                     )
                 }
                 Text(
                     text = item.text,
-                    color = if (item.isDone) colorResource(id = R.color.label_tertiary) else colorResource(
-                        id = R.color.label_primary
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (item.isDone) AppTheme.colors.labelTertiary else AppTheme.colors.labelPrimary,
+                    style = AppTheme.type.body,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     textDecoration = if (item.isDone) TextDecoration.LineThrough else TextDecoration.None
@@ -332,8 +330,8 @@ fun TodoItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = item.deadlineDate.format(formatter),
-                    color = colorResource(id = R.color.label_tertiary),
-                    style = MaterialTheme.typography.bodySmall
+                    color = AppTheme.colors.labelTertiary,
+                    style = AppTheme.type.subhead
                 )
             }
         }
@@ -345,7 +343,7 @@ fun TodoItem(
                 painter = painterResource(id = R.drawable.info_outline),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                colorFilter = ColorFilter.tint(colorResource(id = R.color.label_tertiary))
+                colorFilter = ColorFilter.tint(AppTheme.colors.labelTertiary)
             )
         }
     }

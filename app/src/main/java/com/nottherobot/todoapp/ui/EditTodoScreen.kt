@@ -24,12 +24,12 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -46,11 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -61,6 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nottherobot.todoapp.NavigationDestination
 import com.nottherobot.todoapp.R
 import com.nottherobot.todoapp.models.ui.Importance
+import com.nottherobot.todoapp.ui.theme.AppTheme
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -79,7 +78,7 @@ fun EditTodoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(id = R.color.back_primary))
+            .background(AppTheme.colors.backPrimary)
             .verticalScroll(rememberScrollState())
     ) {
         val vm: EditTodoViewModel = viewModel(factory = EditTodoViewModel.Factory)
@@ -139,7 +138,7 @@ fun EditTodoTopBar(
                 painter = painterResource(id = R.drawable.close),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
-                colorFilter = ColorFilter.tint(colorResource(id = R.color.label_primary))
+                colorFilter = ColorFilter.tint(AppTheme.colors.labelPrimary)
             )
         }
 
@@ -155,14 +154,14 @@ fun EditTodoTopBar(
                     .padding(end = 4.dp)
                     .height(48.dp),
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = colorResource(id = R.color.blue),
-                    disabledContentColor = colorResource(id = R.color.label_disable)
+                    contentColor = AppTheme.colors.blue,
+                    disabledContentColor = AppTheme.colors.labelDisable
                 ),
                 enabled = isSaveButtonEnabled
             ) {
                 Text(
                     text = stringResource(id = R.string.save),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = AppTheme.type.button,
                 )
             }
         }
@@ -186,10 +185,10 @@ fun TaskDescription(
             .shadow(8.dp)
             .padding(bottom = 2.dp, start = 1.dp, end = 1.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(colorResource(id = R.color.back_secondary))
+            .background(AppTheme.colors.backSecondary)
             .padding(16.dp),
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = colorResource(id = R.color.label_primary)),
-        cursorBrush = SolidColor(colorResource(id = R.color.label_primary)),
+        textStyle = AppTheme.type.body.copy(color = AppTheme.colors.labelPrimary),
+        cursorBrush = SolidColor(AppTheme.colors.labelPrimary),
         decorationBox = @Composable { innerTextField ->
             TextFieldDefaults.DecorationBox(
                 value = text,
@@ -201,8 +200,8 @@ fun TaskDescription(
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.what_to_do),
-                        color = colorResource(id = R.color.label_tertiary),
-                        style = MaterialTheme.typography.bodyMedium,
+                        color = AppTheme.colors.labelTertiary,
+                        style = AppTheme.type.body,
                     )
                 },
                 contentPadding = PaddingValues(0.dp),
@@ -241,7 +240,7 @@ fun ImportanceDropDown(
                 .widthIn(min = 164.dp)
                 .shadow(8.dp, spotColor = Color.Black, ambientColor = Color.Black)
                 .padding(1.dp)
-                .background(colorResource(id = R.color.back_secondary))
+                .background(AppTheme.colors.backSecondary)
         ) {
             Text(
                 text = stringResource(id = R.string.none),
@@ -252,8 +251,8 @@ fun ImportanceDropDown(
                         importance = Importance.Default
                         expanded = false
                     },
-                color = colorResource(id = R.color.label_primary),
-                style = MaterialTheme.typography.bodyMedium,
+                color = AppTheme.colors.labelPrimary,
+                style = AppTheme.type.body,
             )
             Text(
                 text = stringResource(id = R.string.low),
@@ -264,8 +263,8 @@ fun ImportanceDropDown(
                         importance = Importance.Low
                         expanded = false
                     },
-                color = colorResource(id = R.color.label_primary),
-                style = MaterialTheme.typography.bodyMedium
+                color = AppTheme.colors.labelPrimary,
+                style = AppTheme.type.body
             )
             Text(
                 text = stringResource(id = R.string.high),
@@ -276,8 +275,8 @@ fun ImportanceDropDown(
                         importance = Importance.High
                         expanded = false
                     },
-                color = colorResource(id = R.color.red),
-                style = MaterialTheme.typography.bodyMedium
+                color = AppTheme.colors.red,
+                style = AppTheme.type.body
             )
         }
 
@@ -287,14 +286,14 @@ fun ImportanceDropDown(
         ) {
             Text(
                 text = stringResource(id = R.string.importance),
-                color = colorResource(id = R.color.label_primary),
-                style = MaterialTheme.typography.bodyMedium,
+                color = AppTheme.colors.labelPrimary,
+                style = AppTheme.type.body,
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = stringResource(id = importance.getStringId()),
-                color = if(importance == Importance.High) colorResource(id = R.color.red) else colorResource(id = R.color.label_tertiary),
-                style = MaterialTheme.typography.bodySmall,
+                color = if(importance == Importance.High) AppTheme.colors.red else AppTheme.colors.labelTertiary,
+                style = AppTheme.type.subhead,
             )
         }
     }
@@ -327,16 +326,16 @@ fun DeadLineView(
             Text(
                 text = stringResource(id = R.string.do_until),
                 modifier = Modifier,
-                color = colorResource(id = R.color.label_primary),
-                style = MaterialTheme.typography.bodyMedium
+                color = AppTheme.colors.labelPrimary,
+                style = AppTheme.type.body
             )
             Spacer(modifier = Modifier.height(4.dp))
             if (deadline != null) {
                 Text(
                     text = deadline!!.format(formatter),
                     modifier = Modifier,
-                    color = colorResource(id = R.color.blue),
-                    style = MaterialTheme.typography.bodySmall
+                    color = AppTheme.colors.blue,
+                    style = AppTheme.type.subhead
                 )
             }
         }
@@ -355,10 +354,10 @@ fun DeadLineView(
                     }
                 },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = colorResource(id = R.color.blue),
-                    uncheckedThumbColor = colorResource(id = R.color.back_elevated),
-                    checkedTrackColor = colorResource(id = R.color.light_blue),
-                    uncheckedTrackColor = colorResource(id = R.color.support_overlay),
+                    checkedThumbColor = AppTheme.colors.blue,
+                    uncheckedThumbColor = AppTheme.colors.backElevated,
+                    checkedTrackColor = AppTheme.colors.lightBlue,
+                    uncheckedTrackColor = AppTheme.colors.supportOverlay,
                     checkedBorderColor = Color.Transparent,
                     uncheckedBorderColor = Color.Transparent,
                 )
@@ -366,7 +365,7 @@ fun DeadLineView(
         }
 
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = LocalDate.now().toEpochDay() * 24 * 3600 * 1000
+            initialSelectedDateMillis = LocalDate.now().toEpochDay() * 24 * 3600 * 1000,
         )
 
         if (isDialogOpen) {
@@ -388,8 +387,8 @@ fun DeadLineView(
                         Text(
                             text = stringResource(id = R.string.ok),
                             modifier = Modifier,
-                            color = colorResource(id = R.color.blue),
-                            style = MaterialTheme.typography.labelMedium
+                            color = AppTheme.colors.blue,
+                            style = AppTheme.type.button
                         )
                     }
                 },
@@ -400,15 +399,37 @@ fun DeadLineView(
                         Text(
                             text = stringResource(id = R.string.cancel),
                             modifier = Modifier,
-                            color = colorResource(id = R.color.blue),
-                            style = MaterialTheme.typography.labelMedium
+                            color = AppTheme.colors.blue,
+                            style = AppTheme.type.button
                         )
                     }
-                }
+                },
+                colors = DatePickerDefaults.colors(
+                    containerColor = AppTheme.colors.backSecondary,
+                )
             ) {
                 DatePicker(
                     state = datePickerState,
-                    modifier = Modifier
+                    modifier = Modifier,
+                    colors = DatePickerDefaults.colors(
+                        dividerColor = AppTheme.colors.blue,
+                        todayContentColor = AppTheme.colors.blue,
+                        todayDateBorderColor = Color.Transparent,
+                        dayContentColor = AppTheme.colors.labelPrimary,
+                        selectedDayContainerColor = AppTheme.colors.blue,
+                        selectedDayContentColor = AppTheme.colors.white,
+                        weekdayContentColor = AppTheme.colors.labelSecondary,
+                        titleContentColor = AppTheme.colors.labelPrimary,
+                        headlineContentColor = AppTheme.colors.labelPrimary,
+                        selectedYearContainerColor = AppTheme.colors.blue,
+                        selectedYearContentColor = AppTheme.colors.white,
+                        currentYearContentColor = AppTheme.colors.blue,
+                        yearContentColor = AppTheme.colors.labelPrimary,
+                        subheadContentColor = AppTheme.colors.blue,
+                        navigationContentColor = AppTheme.colors.labelPrimary,
+                        containerColor = AppTheme.colors.backSecondary,
+                    ),
+                    showModeToggle = false
                 )
             }
         }
@@ -420,7 +441,7 @@ fun DeleteView(
     isEnabled: Boolean,
     onDeleteClick: () -> Unit
 ) {
-    val colorId = if (isEnabled) R.color.red else R.color.label_disable
+    val contentColor = if (isEnabled) AppTheme.colors.red else AppTheme.colors.labelDisable
     val modifier = if(isEnabled){
         Modifier.clickable(role = Role.Button) { onDeleteClick() }
     }else{
@@ -438,13 +459,13 @@ fun DeleteView(
             painter = painterResource(R.drawable.delete),
             contentDescription = null,
             modifier = Modifier.size(24.dp),
-            colorFilter = ColorFilter.tint(colorResource(id = colorId))
+            colorFilter = ColorFilter.tint(contentColor)
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = stringResource(id = R.string.delete),
-            color = colorResource(id = colorId),
-            style = MaterialTheme.typography.bodyMedium
+            color = contentColor,
+            style = AppTheme.type.body
         )
     }
 }
