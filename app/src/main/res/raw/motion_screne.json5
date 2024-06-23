@@ -1,0 +1,90 @@
+{
+  ConstraintSets:{
+    start: {
+      headerBox: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 0],
+        height: 164,
+        alpha: 0.0,
+      },
+      title: {
+        start: ['parent', 'start', 60],
+        top: ['parent', 'top', 82],
+        custom: {
+          fontSize: 32,
+          lineHeight: 38,
+          letterSpacing: 0
+        }
+      },
+      subtitle: {
+        start: ['title', 'start', 0],
+        top: ['title', 'bottom', 4],
+        alpha: 1.0,
+      },
+      lazyColumn: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 164],
+//        bottom: ['parent', 'bottom', 16],
+      },
+      eye: {
+        end: ['parent', 'end', 6],
+        bottom: ['lazyColumn', 'top', 4],
+      },
+      fab: {
+        end: ['parent', 'end', 16],
+        bottom: ['parent', 'bottom', 40],
+      }
+    },
+    end: {
+      headerBox: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 0],
+        height: 88,
+        alpha: 1.0,
+      },
+      title: {
+        start: ['parent', 'start', 16],
+        top: ['eye', 'top', 0],
+        bottom: ['eye', 'bottom', 0],
+        custom: {
+          fontSize: 20,
+          lineHeight: 32,
+          letterSpacing: 0.5
+        }
+      },
+      subtitle: {
+        start: ['title', 'start', 0],
+        top: ['title', 'bottom', 4],
+        alpha: 0.0,
+      },
+      lazyColumn: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 80],
+//        bottom: ['parent', 'bottom', 16],
+      },
+      eye: {
+        end: ['parent', 'end', 6],
+        bottom: ['lazyColumn', 'top', 4],
+      },
+      fab: {
+        end: ['parent', 'end', 16],
+        bottom: ['parent', 'bottom', 40],
+      }
+    }
+  },
+  Transitions: {
+    default: {
+      from: 'start',
+      to: 'end',
+      onSwipe: {
+        anchor: 'headerBox',
+        direction: 'up',
+        side: 'top',
+      }
+    }
+  },
+}

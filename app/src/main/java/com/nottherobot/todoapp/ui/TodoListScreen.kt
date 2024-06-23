@@ -35,27 +35,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.MotionLayout
+import androidx.constraintlayout.compose.MotionLayoutScope
 import androidx.constraintlayout.compose.MotionScene
 import androidx.constraintlayout.compose.layoutId
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -96,16 +95,41 @@ fun TodoListScreen(
         }
     }
 
+    val context = LocalContext.current
+    val motionScene = remember {
+        context.resources
+            .openRawResource(R.raw.motion_screne)
+            .readBytes()
+            .decodeToString()
+    }
+    val vm: TodoListViewModel = viewModel(factory = TodoListViewModel.Factory)
+    val list by vm.todoList.collectAsState()
+
     MotionLayout(
-        motionScene = mainScreenMotionScene(),
+        motionScene = MotionScene(motionScene),
         progress = 1f - currentOffset / maxPx,
         modifier = Modifier
-            .background(colorResource(id = R.color.back_primary))
-            .fillMaxSize(),
+            .fillMaxSize()
+            .background(colorResource(id = R.color.back_primary)),
     ) {
-        val vm: TodoListViewModel = viewModel(factory = TodoListViewModel.Factory)
-        val list by vm.todoList.collectAsState()
-
+        Box(
+            contentAlignment = Alignment.BottomCenter,
+            modifier = Modifier
+                .layoutId("headerBox")
+                .fillMaxWidth()
+        ){
+            Box(modifier = Modifier
+                .height(4.dp)
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        listOf(
+                            Color(0, 0, 0, 0x4D),
+                            Color.Transparent
+                        )
+                    )
+                ))
+        }
         TodoLazyList(
             list,
             { todoItem, b -> vm.onCheckboxClicked(todoItem, b)},
@@ -116,6 +140,7 @@ fun TodoListScreen(
         TodoListHeader(
             vm.doneTasksCount,
             vm.isShowDone,
+            this@MotionLayout
         )
         FloatingActionButton(
             onClick = { navigateToEditTodo(null) },
@@ -128,7 +153,9 @@ fun TodoListScreen(
             Image(
                 painter = painterResource(id = R.drawable.add),
                 contentDescription = null,
-                modifier = Modifier.size(24.dp))
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(id = R.color.white))
+            )
         }
     }
 }
@@ -137,70 +164,43 @@ fun TodoListScreen(
 fun TodoListHeader(
     doneTasksCount: MutableIntState,
     isShowDoneState: MutableState<Boolean>,
-    ){
+    motionLayoutScope: MotionLayoutScope
+    ) {
     var isChecked by isShowDoneState
 
-    BoxWithConstraints(
-        contentAlignment = Alignment.BottomCenter,
-        modifier = Modifier.layoutId("header")
+    Text(
+        text = stringResource(id = R.string.title_todo_list),
+        color = colorResource(id = R.color.label_primary),
+        fontSize = motionLayoutScope.customFontSize("title", "fontSize"),
+        lineHeight = motionLayoutScope.customFontSize("title", "lineHeight"),
+        letterSpacing = motionLayoutScope.customFontSize("title", "letterSpacing"),
+        modifier = Modifier.layoutId("title")
+    )
+    Text(
+        text = stringResource(id = R.string.done) + " - ${doneTasksCount.intValue}",
+        color = colorResource(id = R.color.label_tertiary),
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.layoutId("subtitle")
+    )
+    IconToggleButton(
+        checked = isChecked,
+        onCheckedChange = {
+            isChecked = it
+        },
+        modifier = Modifier
+            .size(48.dp)
+            .layoutId("eye")
     ) {
-        val animPosition = maxHeight - 88.dp
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(1f - animPosition / 76.dp)
-                .shadow(8.dp - animPosition / 19, RectangleShape)
-                .padding(bottom = 4.dp)
-                .background(colorResource(id = R.color.back_primary))
+        Image(
+            painter = painterResource(id = if (isChecked) R.drawable.eye_closed else R.drawable.eye_open),
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            colorFilter = ColorFilter.tint(colorResource(id = R.color.blue))
         )
-        ConstraintLayout(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val (title, subtitle, icon) = createRefs()
-            Text(
-                text = stringResource(id = R.string.title_todo_list),
-                color = colorResource(id = R.color.label_primary),
-                style = if (animPosition > 10.dp) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
-                modifier = Modifier.constrainAs(title) {
-                    top.linkTo(parent.top, 40.dp + animPosition * 0.55f)
-                    start.linkTo(parent.start, 16.dp + animPosition * 0.55f)
-                }
-            )
-            Text(
-                text = stringResource(id = R.string.done) + " - ${doneTasksCount.intValue}",
-                color = colorResource(id = R.color.label_tertiary),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .alpha(animPosition / 76.dp)
-                    .constrainAs(subtitle) {
-                        top.linkTo(title.bottom, 8.dp)
-                        start.linkTo(title.start)
-                    }
-            )
-            IconToggleButton(
-                checked = isChecked,
-                onCheckedChange = {
-                    isChecked = it
-                },
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(4.dp)
-                    .constrainAs(icon) {
-                        top.linkTo(title.top)
-                        bottom.linkTo(title.bottom)
-                        end.linkTo(parent.end)
-                    }
-            ) {
-                Image(
-                    imageVector = ImageVector.vectorResource(
-                        id = if (isChecked) R.drawable.eye_closed else R.drawable.eye_open
-                    ),
-                    contentDescription = null,
-                )
-            }
-        }
     }
+
 }
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -216,7 +216,7 @@ fun TodoLazyList(
     BoxWithConstraints(
         modifier = Modifier
             .layoutId("lazyColumn")
-            .nestedScroll(nestedScrollConnection)
+            .padding(bottom = 82.dp)
     ) {
         val textWidth = remember { maxWidth - 96.dp }
         Box(modifier = Modifier
@@ -224,8 +224,10 @@ fun TodoLazyList(
             .clip(RoundedCornerShape(8.dp))
             .background(colorResource(id = R.color.back_secondary))
         ) {
-            LazyColumn{
-                stickyHeader {
+            LazyColumn(
+                modifier = Modifier.nestedScroll(nestedScrollConnection)
+            ){
+                item {
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 items(list) { item ->
@@ -233,7 +235,7 @@ fun TodoLazyList(
                         TodoItem(item, textWidth, onCheckboxClick, onItemClick)
                     }
                 }
-                stickyHeader {
+                item {
                     Box(modifier = Modifier
                         .heightIn(min = 48.dp)
                         .fillMaxWidth()
@@ -270,6 +272,13 @@ fun TodoItem(
         R.drawable.unchecked_checkbox_default
     }
 
+    val checkboxDrawableColor = if (item.isDone) {
+        R.color.green
+    } else if(item.importance == Importance.High){
+        R.color.red
+    }else{
+        R.color.support_separator
+    }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -283,8 +292,10 @@ fun TodoItem(
             onCheckedChange = { isDone -> onCheckboxClick(item, isDone) },
         ) {
             Image(
-                imageVector = ImageVector.vectorResource(id = checkboxDrawableId),
+                painter = painterResource(id = checkboxDrawableId),
                 contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(checkboxDrawableColor))
             )
         }
 
@@ -296,9 +307,11 @@ fun TodoItem(
         ) {
             Row {
                 if(item.importance != Importance.Default){
-                    Image(imageVector = ImageVector.vectorResource(
+                    Image(painter = painterResource(
                         id = if(item.importance == Importance.High) R.drawable.high_priority else R.drawable.low_priority),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(colorResource(id = if(item.importance == Importance.High) R.color.red else R.color.gray))
                     )
                 }
                 Text(
@@ -329,8 +342,10 @@ fun TodoItem(
             contentAlignment = Alignment.Center,
         ) {
             Image(
-                imageVector = ImageVector.vectorResource(id = R.drawable.info_outline),
+                painter = painterResource(id = R.drawable.info_outline),
                 contentDescription = null,
+                modifier = Modifier.size(24.dp),
+                colorFilter = ColorFilter.tint(colorResource(id = R.color.label_tertiary))
             )
         }
     }
@@ -339,12 +354,27 @@ fun TodoItem(
 @Composable
 fun mainScreenMotionScene(): MotionScene {
     return MotionScene { // this: MotionSceneScope
-        val header = createRefFor("header")
+        val headerBox = createRefFor("header")
+        val title = createRefFor("title")
+        val subtitle = createRefFor("subtitle")
+        val eye = createRefFor("eye")
         val lazyColumn = createRefFor("lazyColumn")
         val fab = createRefFor("fab")
         defaultTransition(
             from = constraintSet { // this: ConstraintSetScope
-                constrain(header) {
+                constrain(title){
+                    start.linkTo(parent.start, 60.dp)
+                    top.linkTo(parent.top, 82.dp)
+                }
+                constrain(subtitle){
+                    start.linkTo(title.start)
+                    top.linkTo(title.bottom, 4.dp)
+                }
+                constrain(eye){
+                    end.linkTo(parent.end, 18.dp)
+                    bottom.linkTo(lazyColumn.top, 4.dp)
+                }
+                constrain(headerBox) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -353,7 +383,7 @@ fun mainScreenMotionScene(): MotionScene {
                     height = Dimension.fillToConstraints
                 }
                 constrain(lazyColumn) {
-                    top.linkTo(header.bottom)
+                    top.linkTo(headerBox.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
@@ -366,7 +396,19 @@ fun mainScreenMotionScene(): MotionScene {
                 }
             },
             to = constraintSet { // this: ConstraintSetScope
-                constrain(header) {
+                constrain(title){
+                    start.linkTo(parent.start, 16.dp)
+                    top.linkTo(parent.top, 48.dp)
+                }
+                constrain(subtitle){
+                    start.linkTo(title.start)
+                    top.linkTo(title.bottom, 4.dp)
+                }
+                constrain(eye){
+                    end.linkTo(parent.end, 18.dp)
+                    bottom.linkTo(lazyColumn.top, 4.dp)
+                }
+                constrain(headerBox) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
@@ -375,7 +417,7 @@ fun mainScreenMotionScene(): MotionScene {
                     height = Dimension.fillToConstraints
                 }
                 constrain(lazyColumn) {
-                    top.linkTo(header.bottom, (-12).dp)
+                    top.linkTo(headerBox.bottom, (-12).dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
