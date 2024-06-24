@@ -1,3 +1,17 @@
 <resources>
-    <string name="app_name">TodoApp</string>
+    <string name="app_name">ToDoAppYandex</string>
+    <string name="title_todo_list">Tasks</string>
+    <string name="done">Done</string>
+    <string name="new_task">New</string>
+    <string name="save">Save</string>
+    <string name="what_to_do">What to do…</string>
+    <string name="do_until">Do until</string>
+    <string name="delete">Delete</string>
+    <string name="importance">Importance</string>
+    <string name="none">None</string>
+    <string name="low">Low</string>
+    <string name="high">!!High</string>
+    <string name="add_task">Add task</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
 </resources>
