@@ -24,11 +24,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.IconToggleButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -47,9 +48,9 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.MotionLayout
 import androidx.constraintlayout.compose.MotionLayoutScope
 import androidx.constraintlayout.compose.MotionScene
@@ -59,7 +60,10 @@ import com.nottherobot.todoapp.NavigationDestination
 import com.nottherobot.todoapp.R
 import com.nottherobot.todoapp.models.ui.Importance
 import com.nottherobot.todoapp.models.ui.TodoItem
+import com.nottherobot.todoapp.repository.TodoItemsRepository
+import com.nottherobot.todoapp.repository.generateItems
 import com.nottherobot.todoapp.ui.theme.AppTheme
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 object TodoListScreen: NavigationDestination{
@@ -68,7 +72,26 @@ object TodoListScreen: NavigationDestination{
 
 @Composable
 fun TodoListScreen(
+    vm: TodoListViewModel = viewModel(factory = TodoListViewModel.Factory),
     navigateToEditTodo: (String?) -> Unit
+){
+    val list by vm.todoList.collectAsState()
+    TodoListScreen(
+        itemsList = list,
+        navigateToEdit = { navigateToEditTodo(it) },
+        onCheckboxClicked = {todoItem, b ->  vm.onCheckboxClicked(todoItem, b) },
+        isShowDoneState = vm.isShowDone,
+        doneTasksCount = vm.doneTasksCount.intValue
+    )
+}
+
+@Composable
+fun TodoListScreen(
+    itemsList: List<TodoItem>,
+    navigateToEdit: (String?) -> Unit,
+    onCheckboxClicked: (TodoItem, Boolean) -> Unit,
+    isShowDoneState: MutableState<Boolean>,
+    doneTasksCount: Int
 ){
     var currentOffset by remember{ mutableFloatStateOf(76.0f) }
     val maxPx = remember { 76.0f }
@@ -100,8 +123,7 @@ fun TodoListScreen(
             .readBytes()
             .decodeToString()
     }
-    val vm: TodoListViewModel = viewModel(factory = TodoListViewModel.Factory)
-    val list by vm.todoList.collectAsState()
+
 
     MotionLayout(
         motionScene = MotionScene(motionScene),
@@ -111,19 +133,19 @@ fun TodoListScreen(
             .background(AppTheme.colors.backPrimary),
     ) {
         TodoLazyList(
-            list,
-            { todoItem, b -> vm.onCheckboxClicked(todoItem, b)},
-            { navigateToEditTodo(it) },
-            vm.isShowDone,
+            itemsList,
+            { todoItem, b -> onCheckboxClicked(todoItem, b)},
+            { navigateToEdit(it) },
+            isShowDoneState.value,
             nestedScrollConnection
         )
         TodoListHeader(
-            vm.doneTasksCount,
-            vm.isShowDone,
+            doneTasksCount,
+            isShowDoneState,
             this@MotionLayout
         )
         FloatingActionButton(
-            onClick = { navigateToEditTodo(null) },
+            onClick = { navigateToEdit(null) },
             modifier = Modifier
                 .size(56.dp)
                 .layoutId("fab"),
@@ -142,7 +164,7 @@ fun TodoListScreen(
 
 @Composable
 fun TodoListHeader(
-    doneTasksCount: MutableIntState,
+    doneTasksCount: Int,
     isShowDoneState: MutableState<Boolean>,
     motionLayoutScope: MotionLayoutScope
     ) {
@@ -159,7 +181,7 @@ fun TodoListHeader(
 
     )
     Text(
-        text = stringResource(id = R.string.done) + " - ${doneTasksCount.intValue}",
+        text = stringResource(id = R.string.done) + " - $doneTasksCount",
         color = AppTheme.colors.labelTertiary,
         style = AppTheme.type.body,
         modifier = Modifier.layoutId("subtitle")
@@ -203,16 +225,14 @@ fun TodoListHeader(
 
 }
 
-
 @Composable
 fun TodoLazyList(
     list: List<TodoItem>,
     onCheckboxClick: (TodoItem, Boolean) -> Unit,
     onItemClick: (String?) -> Unit,
-    isShowDoneState: MutableState<Boolean>,
+    isShowDoneState: Boolean,
     nestedScrollConnection: NestedScrollConnection
 ){
-    val isShowDone by isShowDoneState
 
     BoxWithConstraints(
         modifier = Modifier
@@ -224,6 +244,7 @@ fun TodoLazyList(
             .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(AppTheme.colors.backSecondary)
+//            .background(Color.White)
         ) {
             LazyColumn(
                 modifier = Modifier.nestedScroll(nestedScrollConnection)
@@ -232,8 +253,8 @@ fun TodoLazyList(
                     Spacer(modifier = Modifier.height(8.dp))
                 }
                 items(list) { item ->
-                    if(isShowDone || !item.isDone){
-                        TodoItem(item, textWidth, onCheckboxClick, onItemClick)
+                    if(isShowDoneState || !item.isDone){
+                        TodoListItem(item, textWidth, onCheckboxClick, onItemClick)
                     }
                 }
                 item {
@@ -259,7 +280,7 @@ fun TodoLazyList(
 }
 
 @Composable
-fun TodoItem(
+fun TodoListItem(
     item: TodoItem,
     textWidth: Dp,
     onCheckboxClick: (TodoItem, Boolean) -> Unit,
@@ -349,84 +370,113 @@ fun TodoItem(
     }
 }
 
+@Preview(showBackground = true)
 @Composable
-fun mainScreenMotionScene(): MotionScene {
-    return MotionScene { // this: MotionSceneScope
-        val headerBox = createRefFor("header")
-        val title = createRefFor("title")
-        val subtitle = createRefFor("subtitle")
-        val eye = createRefFor("eye")
-        val lazyColumn = createRefFor("lazyColumn")
-        val fab = createRefFor("fab")
-        defaultTransition(
-            from = constraintSet { // this: ConstraintSetScope
-                constrain(title){
-                    start.linkTo(parent.start, 60.dp)
-                    top.linkTo(parent.top, 82.dp)
-                }
-                constrain(subtitle){
-                    start.linkTo(title.start)
-                    top.linkTo(title.bottom, 4.dp)
-                }
-                constrain(eye){
-                    end.linkTo(parent.end, 18.dp)
-                    bottom.linkTo(lazyColumn.top, 4.dp)
-                }
-                constrain(headerBox) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.top, (-164).dp)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                }
-                constrain(lazyColumn) {
-                    top.linkTo(headerBox.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                }
-                constrain(fab){
-                    bottom.linkTo(parent.bottom, 40.dp)
-                    end.linkTo(parent.end, 16.dp)
-                }
-            },
-            to = constraintSet { // this: ConstraintSetScope
-                constrain(title){
-                    start.linkTo(parent.start, 16.dp)
-                    top.linkTo(parent.top, 48.dp)
-                }
-                constrain(subtitle){
-                    start.linkTo(title.start)
-                    top.linkTo(title.bottom, 4.dp)
-                }
-                constrain(eye){
-                    end.linkTo(parent.end, 18.dp)
-                    bottom.linkTo(lazyColumn.top, 4.dp)
-                }
-                constrain(headerBox) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.top, (-88).dp)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                }
-                constrain(lazyColumn) {
-                    top.linkTo(headerBox.bottom, (-12).dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                    width = Dimension.fillToConstraints
-                    height = Dimension.fillToConstraints
-                }
-                constrain(fab){
-                    bottom.linkTo(parent.bottom, 40.dp)
-                    end.linkTo(parent.end, 16.dp)
-                }
+fun TodoListHeaderPreviewEnd(){
+    AppTheme {
+        val done = remember { 0 }
+        val isShowDone = remember {
+            mutableStateOf(true)
+        }
+        val context = LocalContext.current
+        val motionScene = remember {
+            context.resources
+                .openRawResource(R.raw.motion_screne)
+                .readBytes()
+                .decodeToString()
+        }
+        MotionLayout(motionScene = MotionScene(motionScene), progress = 1f) {
+            TodoListHeader(
+                doneTasksCount = done,
+                isShowDoneState = isShowDone,
+                motionLayoutScope = this@MotionLayout
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TodoListHeaderPreviewStart(){
+    AppTheme {
+        val done = remember { 0 }
+        val isShowDone = remember {
+            mutableStateOf(true)
+        }
+        val context = LocalContext.current
+        val motionScene = remember {
+            context.resources
+                .openRawResource(R.raw.motion_screne)
+                .readBytes()
+                .decodeToString()
+        }
+        MotionLayout(motionScene = MotionScene(motionScene), progress = 0f) {
+            TodoListHeader(
+                doneTasksCount = done,
+                isShowDoneState = isShowDone,
+                motionLayoutScope = this@MotionLayout
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TodoItemPreview() {
+    AppTheme {
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            TodoListItem(
+                item = TodoItem(
+                    id = "0",
+                    text = "Clean ass",
+                    importance = Importance.High,
+                    deadlineDate = LocalDate.now(),
+                    isDone = false,
+                    creationDate = LocalDate.now(),
+                    modificationDate = LocalDate.now(),
+                ),
+                textWidth = maxWidth - 96.dp,
+                onCheckboxClick = { todoItem, b -> },
+                onItemClick = { }
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TodoLazyListPreview(){
+    AppTheme {
+        val items = generateItems(30)
+        val nsc = remember {
+            object : NestedScrollConnection {
+
             }
+        }
+        TodoLazyList(
+            list = items,
+            onCheckboxClick = { todoItem, b -> },
+            onItemClick = { },
+            isShowDoneState = false,
+            nestedScrollConnection = nsc
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TodoListScreenPreview(){
+    AppTheme {
+        val items = generateItems(30)
+        val isShowDoneState = remember { mutableStateOf(true) }
+        TodoListScreen(
+            itemsList = items,
+            navigateToEdit = { },
+            onCheckboxClicked = { todoItem, b -> },
+            isShowDoneState = isShowDoneState,
+            doneTasksCount = 5
         )
     }
 }

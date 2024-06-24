@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.math.abs
@@ -27,7 +26,7 @@ class TodoItemsRepository{
     init {
         repositoryScope.launch {
             Log.d("kekw", "repository thread: ${Thread.currentThread()}")
-            src.addAll(generateItems())
+            src.addAll(generateItems(30))
             _todoItems.value = src.toList()
         }
     }
@@ -55,36 +54,5 @@ class TodoItemsRepository{
     fun removeTodoItem(item: TodoItem) {
         src.remove(item)
         _todoItems.value = src.toList()
-    }
-
-    private fun generateItems(): List<TodoItem> {
-        val text = listOf(
-            "маленький текст",
-            """очень большой текст очень большой текст очень большой текст очень большой текст 
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-            """.trimMargin()
-        )
-        val importance = listOf(Importance.Low, Importance.High, Importance.Default)
-        val today = LocalDate.now()
-        val deadline = LocalDate.now().also { it.plusDays(2L) }
-        val modDate = LocalDate.now().also { it.plusDays(1L) }
-
-        val lst = mutableListOf<TodoItem>()
-        repeat(30) {
-            lst.add(
-                TodoItem(
-                    UUID.randomUUID().toString(),
-                    text[abs(Random.nextInt() % 2)],
-                    importance[abs(Random.nextInt()) % 3],
-                    if (it % 2 == 0) deadline else null,
-                    Random.nextInt() % 2 == 0,
-                    today,
-                    if (it % 2 == 0) modDate else null
-                )
-            )
-        }
-        return lst
     }
 }

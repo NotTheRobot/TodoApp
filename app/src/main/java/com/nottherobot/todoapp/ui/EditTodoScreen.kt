@@ -53,6 +53,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -74,6 +75,28 @@ object EditTodoScreen: NavigationDestination {
 @Composable
 fun EditTodoScreen(
     onNavigateUp: () -> Unit,
+    vm: EditTodoViewModel = viewModel(factory = EditTodoViewModel.Factory)
+){
+    EditTodoScreen(
+        onNavigateUp = { onNavigateUp() },
+        onSaveClick = { vm.onSaveClick() },
+        textState = vm.text,
+        importanceState = vm.importance,
+        deadlineState = vm.deadlineDate,
+        isAbleToDelete = vm.item.value != null,
+        onDeleteClick = { vm.onDeleteClick() }
+    )
+}
+
+@Composable
+fun EditTodoScreen(
+    onNavigateUp: () -> Unit,
+    onSaveClick: () -> Unit,
+    textState: MutableState<String>,
+    importanceState: MutableState<Importance>,
+    deadlineState: MutableState<LocalDate?>,
+    isAbleToDelete: Boolean,
+    onDeleteClick: () -> Unit
 ){
     Column(
         modifier = Modifier
@@ -81,41 +104,42 @@ fun EditTodoScreen(
             .background(AppTheme.colors.backPrimary)
             .verticalScroll(rememberScrollState())
     ) {
-        val vm: EditTodoViewModel = viewModel(factory = EditTodoViewModel.Factory)
+
         Spacer(modifier = Modifier.height(32.dp))
         EditTodoTopBar(
             onCancelClick = { onNavigateUp() },
             onSaveClick = {
-                vm.onSaveClick()
+                onSaveClick()
                 onNavigateUp()
             },
-            isSaveButtonEnabled = vm.text.value != ""
+            isSaveButtonEnabled = textState.value != ""
         )
         Spacer(modifier = Modifier.height(8.dp))
         TaskDescription(
-            vm.text
+            textState
         )
         Spacer(modifier = Modifier.height(12.dp))
-        ImportanceDropDown(
-            vm.importance
+        ImportanceDropdown(
+            importanceState
         )
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         DeadLineView(
-            vm.deadlineDate
+            deadlineState
         )
         Spacer(modifier = Modifier.height(24.dp))
         HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
         Spacer(modifier = Modifier.height(8.dp))
         DeleteView(
-            vm.item.value != null,
+            isAbleToDelete,
             onDeleteClick = {
-                vm.onDeleteClick()
+                onDeleteClick()
                 onNavigateUp()
             }
         )
         Spacer(modifier = Modifier.height(48.dp))
     }
 }
+
 @Composable
 fun EditTodoTopBar(
     onCancelClick: () -> Unit,
@@ -217,7 +241,7 @@ fun TaskDescription(
 }
 
 @Composable
-fun ImportanceDropDown(
+fun ImportanceDropdown(
     importanceState: MutableState<Importance>
 ) {
     var importance by importanceState
@@ -318,7 +342,7 @@ fun DeadLineView(
             .clickable(role = Role.DropdownList) {
                 isDialogOpen = true
             }
-            .heightIn(min = 72.dp)
+            .height(72.dp)
             .fillMaxWidth()
             .padding(16.dp)
     ) {
@@ -451,7 +475,7 @@ fun DeleteView(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .heightIn(min = 48.dp)
+            .height(72.dp)
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
@@ -467,5 +491,58 @@ fun DeleteView(
             color = contentColor,
             style = AppTheme.type.body
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun EditTodoTopBarPreview(){
+    AppTheme {
+        EditTodoTopBar(
+            onCancelClick = { },
+            onSaveClick = { },
+            isSaveButtonEnabled = true
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TaskDescriptionPreview(){
+    AppTheme{
+        val text = remember {
+            mutableStateOf("clean ass")
+        }
+        TaskDescription(textState = text)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ImportanceDropDownPreview(){
+    AppTheme{
+        val importance = remember {
+            mutableStateOf(Importance.Default)
+        }
+        ImportanceDropdown(importanceState = importance)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DeadlineView(){
+    AppTheme{
+        val deadline = remember {
+            mutableStateOf(LocalDate.now())
+        }
+        DeadLineView(deadlineState = deadline)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DeleteViewPreview(){
+    AppTheme{
+        DeleteView(isEnabled = true) {}
     }
 }
