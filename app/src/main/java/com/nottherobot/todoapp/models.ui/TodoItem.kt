@@ -1,5 +1,7 @@
 package com.nottherobot.todoapp.models.ui
 
+import androidx.annotation.ColorRes
+import androidx.annotation.StringRes
 import com.nottherobot.todoapp.R
 import java.time.LocalDate
 
@@ -14,23 +16,32 @@ data class TodoItem(
 )
 
 enum class Importance{
+    Default{
+        override val order = 1
+        override val stringRes: Int
+            get() = R.string.none
+        override val colorRes: Int
+            get() = R.color.label_primary
+    },
     Low{
         override val order = 0
+        override val stringRes: Int
+            get() = R.string.low
+        override val colorRes: Int
+            get() = R.color.label_primary
     },
     High{
         override val order = 2
-    },
-    Default{
-        override val order = 1
+        override val stringRes: Int
+            get() = R.string.high
+        override val colorRes: Int
+            get() = R.color.red
     };
 
-    abstract val order: Int
 
-    fun getStringId(): Int{
-        return when(this){
-            Importance.Default -> R.string.none
-            Importance.Low -> R.string.low
-            Importance.High -> R.string.high
-        }
-    }
+    abstract val order: Int
+    @get:StringRes
+    abstract val stringRes: Int
+    @get:ColorRes
+    abstract val colorRes: Int
 }

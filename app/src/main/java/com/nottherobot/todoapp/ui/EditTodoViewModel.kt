@@ -51,12 +51,12 @@ class EditTodoViewModel(
 
     fun onSaveClick(){
         val newItem = TodoItem(
-            id = if(item.value == null) UUID.randomUUID().toString() else item.value!!.id,
+            id = item.value?.id ?: (UUID.randomUUID().toString()),
             text = text.value,
             importance = importance.value,
             deadlineDate = deadlineDate.value,
-            isDone = if(item.value == null) false else item.value!!.isDone,
-            creationDate = if(item.value == null) LocalDate.now() else item.value!!.creationDate,
+            isDone = item.value?.isDone ?: false,
+            creationDate = item.value?.creationDate ?: LocalDate.now(),
             modificationDate = if(item.value != null) LocalDate.now() else null
         )
         viewModelScope.launch(Dispatchers.IO) {

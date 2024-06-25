@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -56,6 +58,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nottherobot.todoapp.NavigationDestination
 import com.nottherobot.todoapp.R
@@ -98,45 +101,50 @@ fun EditTodoScreen(
     isAbleToDelete: Boolean,
     onDeleteClick: () -> Unit
 ){
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.backPrimary)
-            .verticalScroll(rememberScrollState())
-    ) {
+    Scaffold(
+        topBar = {
+            EditTodoTopBar(
+                onCancelClick = { onNavigateUp() },
+                onSaveClick = {
+                    onSaveClick()
+                    onNavigateUp()
+                },
+                isSaveButtonEnabled = textState.value.isNotBlank()
+            )
+        },
+        containerColor = AppTheme.colors.backPrimary
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+        ) {
 
-        Spacer(modifier = Modifier.height(32.dp))
-        EditTodoTopBar(
-            onCancelClick = { onNavigateUp() },
-            onSaveClick = {
-                onSaveClick()
-                onNavigateUp()
-            },
-            isSaveButtonEnabled = textState.value != ""
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        TaskDescription(
-            textState
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        ImportanceDropdown(
-            importanceState
-        )
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-        DeadLineView(
-            deadlineState
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-        Spacer(modifier = Modifier.height(8.dp))
-        DeleteView(
-            isAbleToDelete,
-            onDeleteClick = {
-                onDeleteClick()
-                onNavigateUp()
-            }
-        )
-        Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            TaskDescription(
+                textState
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            ImportanceDropdown(
+                importanceState
+            )
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            DeadLineView(
+                deadlineState
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+            DeleteView(
+                isAbleToDelete,
+                onDeleteClick = {
+                    onDeleteClick()
+                    onNavigateUp()
+                }
+            )
+            Spacer(modifier = Modifier.height(48.dp))
+        }
     }
 }
 
@@ -244,7 +252,7 @@ fun TaskDescription(
 fun ImportanceDropdown(
     importanceState: MutableState<Importance>
 ) {
-    var importance by importanceState
+    var currentImportance by importanceState
     var expanded by remember { mutableStateOf(false) }
 
     Box(
@@ -259,49 +267,27 @@ fun ImportanceDropdown(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            offset = DpOffset(16.dp, (-72).dp),
             modifier = Modifier
                 .widthIn(min = 164.dp)
                 .shadow(8.dp, spotColor = Color.Black, ambientColor = Color.Black)
                 .padding(1.dp)
-                .background(AppTheme.colors.backSecondary)
+                .background(AppTheme.colors.backSecondary),
+            offset = DpOffset(16.dp, (-72).dp),
         ) {
-            Text(
-                text = stringResource(id = R.string.none),
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .padding(16.dp)
-                    .clickable(role = Role.Button) {
-                        importance = Importance.Default
-                        expanded = false
-                    },
-                color = AppTheme.colors.labelPrimary,
-                style = AppTheme.type.body,
-            )
-            Text(
-                text = stringResource(id = R.string.low),
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .padding(16.dp)
-                    .clickable(role = Role.Button) {
-                        importance = Importance.Low
-                        expanded = false
-                    },
-                color = AppTheme.colors.labelPrimary,
-                style = AppTheme.type.body
-            )
-            Text(
-                text = stringResource(id = R.string.high),
-                modifier = Modifier
-                    .heightIn(min = 48.dp)
-                    .padding(16.dp)
-                    .clickable(role = Role.Button) {
-                        importance = Importance.High
-                        expanded = false
-                    },
-                color = AppTheme.colors.red,
-                style = AppTheme.type.body
-            )
+            for(importance in Importance.entries){
+                Text(
+                    text = stringResource(id = importance.stringRes),
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .padding(16.dp)
+                        .clickable(role = Role.Button) {
+                            currentImportance = importance
+                            expanded = false
+                        },
+                    color = colorResource(id = importance.colorRes),
+                    style = AppTheme.type.body,
+                )
+            }
         }
 
         Column(
@@ -315,8 +301,8 @@ fun ImportanceDropdown(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = stringResource(id = importance.getStringId()),
-                color = if(importance == Importance.High) AppTheme.colors.red else AppTheme.colors.labelTertiary,
+                text = stringResource(id = currentImportance.stringRes),
+                color = if(currentImportance == Importance.High) AppTheme.colors.red else AppTheme.colors.labelTertiary,
                 style = AppTheme.type.subhead,
             )
         }
@@ -463,20 +449,21 @@ fun DeadLineView(
 @Composable
 fun DeleteView(
     isEnabled: Boolean,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
 ) {
     val contentColor = if (isEnabled) AppTheme.colors.red else AppTheme.colors.labelDisable
-    val modifier = if(isEnabled){
-        Modifier.clickable(role = Role.Button) { onDeleteClick() }
-    }else{
-        Modifier
-    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = Modifier
             .height(72.dp)
             .fillMaxWidth()
+            .clickable(
+                role = Role.Button,
+                enabled = isEnabled
+            ) {
+                onDeleteClick()
+            }
             .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
         Image(

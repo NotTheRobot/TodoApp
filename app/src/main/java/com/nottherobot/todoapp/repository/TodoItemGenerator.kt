@@ -16,10 +16,10 @@ fun generateItems(count: Int): List<TodoItem> {
                 |очень большой текст очень большой текст очень большой текст очень большой текст
             """.trimMargin()
     )
-    val importance = listOf(Importance.Low, Importance.High, Importance.Default)
+    val importance = Importance.entries
     val today = LocalDate.now()
-    val deadline = LocalDate.now().also { it.plusDays(2L) }
-    val modDate = LocalDate.now().also { it.plusDays(1L) }
+    val deadline = today.plusDays(2L)
+    val modDate = today.plusDays(1L)
 
     val lst = mutableListOf<TodoItem>()
     repeat(count) {

@@ -232,47 +232,42 @@ fun TodoLazyList(
     onItemClick: (String?) -> Unit,
     isShowDoneState: Boolean,
     nestedScrollConnection: NestedScrollConnection
-){
+) {
 
     BoxWithConstraints(
         modifier = Modifier
             .layoutId("lazyColumn")
-            .padding(bottom = 82.dp)
-    ) {
-        val textWidth = remember { maxWidth - 96.dp }
-        Box(modifier = Modifier
-            .padding(start = 8.dp, end = 8.dp, bottom = 16.dp)
+            .padding(start = 8.dp, end = 8.dp, bottom = 88.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(AppTheme.colors.backSecondary)
-//            .background(Color.White)
+    ) {
+        val textWidth = remember { maxWidth - 96.dp }
+        LazyColumn(
+            modifier = Modifier.nestedScroll(nestedScrollConnection)
         ) {
-            LazyColumn(
-                modifier = Modifier.nestedScroll(nestedScrollConnection)
-            ){
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            items(list) { item ->
+                if (isShowDoneState || !item.isDone) {
+                    TodoListItem(item, textWidth, onCheckboxClick, onItemClick)
                 }
-                items(list) { item ->
-                    if(isShowDoneState || !item.isDone){
-                        TodoListItem(item, textWidth, onCheckboxClick, onItemClick)
+            }
+            item {
+                Box(modifier = Modifier
+                    .heightIn(min = 48.dp)
+                    .fillMaxWidth()
+                    .clickable(role = Role.Button) {
+                        onItemClick(null)
                     }
-                }
-                item {
-                    Box(modifier = Modifier
-                        .heightIn(min = 48.dp)
-                        .fillMaxWidth()
-                        .clickable(role = Role.Button) {
-                            onItemClick(null)
-                        }
-                        .padding(16.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.new_task),
-                            modifier = Modifier.padding(start = 48.dp),
-                            color = AppTheme.colors.labelTertiary,
-                            style = AppTheme.type.body
-                        )
-                    }
+                    .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.new_task),
+                        modifier = Modifier.padding(start = 48.dp),
+                        color = AppTheme.colors.labelTertiary,
+                        style = AppTheme.type.body
+                    )
                 }
             }
         }
