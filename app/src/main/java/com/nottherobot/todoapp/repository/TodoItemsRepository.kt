@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class TodoItemsRepository(
-){
+) {
     private val repositoryScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
     private val src = mutableListOf<TodoItem>()
 
@@ -25,14 +25,14 @@ class TodoItemsRepository(
         }
     }
 
-    fun addTodoItem(item: TodoItem){
+    fun addTodoItem(item: TodoItem) {
         src.add(item)
         _todoItems.update { src.toList() }
     }
 
     fun updateTodoItem(item: TodoItem) {
-        val index = src.indexOfFirst{ it.id == item.id }
-        if(index == -1){
+        val index = src.indexOfFirst { it.id == item.id }
+        if (index == -1) {
             throw Exception("No such element")
         }
         src[index] = item

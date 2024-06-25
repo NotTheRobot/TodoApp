@@ -1,4 +1,4 @@
-package com.nottherobot.todoapp.ui
+package com.nottherobot.todoapp.ui.screens.todolist
 
 import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 
 class TodoListViewModel(
     private val repository: TodoItemsRepository
-): ViewModel() {
+) : ViewModel() {
 
     val todoList = repository.todoItems
         .map { lst ->
@@ -37,19 +37,19 @@ class TodoListViewModel(
     val doneTasksCount = mutableIntStateOf(0)
     val isShowDone = mutableStateOf<Boolean>(true)
 
-    private fun updateTask(item: TodoItem){
+    private fun updateTask(item: TodoItem) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.updateTodoItem(item)
         }
     }
 
-    fun removeTask(item: TodoItem){
+    fun removeTask(item: TodoItem) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.removeTodoItem(item)
         }
     }
 
-    fun onCheckboxClicked(item: TodoItem, isDone: Boolean){
+    fun onCheckboxClicked(item: TodoItem, isDone: Boolean) {
         val newItem = item.copy(isDone = isDone)
         updateTask(newItem)
     }
@@ -61,7 +61,7 @@ class TodoListViewModel(
         }
     }
 
-    private fun List<TodoItem>.sortedByImportance(): Deferred<List<TodoItem>>{
+    private fun List<TodoItem>.sortedByImportance(): Deferred<List<TodoItem>> {
         return viewModelScope.async(Dispatchers.IO) {
             Log.d("kekw", "sorted thread: ${Thread.currentThread()}")
             this@sortedByImportance.sortedByDescending { it.importance.order }
@@ -70,7 +70,7 @@ class TodoListViewModel(
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer{
+            initializer {
                 val rep = (this[APPLICATION_KEY] as MainApplication).repository
                 TodoListViewModel(rep)
             }

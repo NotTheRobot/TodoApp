@@ -1,4 +1,4 @@
-package com.nottherobot.todoapp.ui
+package com.nottherobot.todoapp.ui.screens.edittodo
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -22,7 +22,7 @@ import java.util.UUID
 class EditTodoViewModel(
     private val repository: TodoItemsRepository,
     private val savedStateHandle: SavedStateHandle,
-): ViewModel() {
+) : ViewModel() {
 
     private var id: String? = savedStateHandle.get<String>("itemId")
     val item = mutableStateOf<TodoItem?>(null)
@@ -49,7 +49,7 @@ class EditTodoViewModel(
         }
     }
 
-    fun onSaveClick(){
+    fun onSaveClick() {
         val newItem = TodoItem(
             id = item.value?.id ?: (UUID.randomUUID().toString()),
             text = text.value,
@@ -57,18 +57,18 @@ class EditTodoViewModel(
             deadlineDate = deadlineDate.value,
             isDone = item.value?.isDone ?: false,
             creationDate = item.value?.creationDate ?: LocalDate.now(),
-            modificationDate = if(item.value != null) LocalDate.now() else null
+            modificationDate = if (item.value != null) LocalDate.now() else null
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if(item.value == null){
+            if (item.value == null) {
                 repository.addTodoItem(newItem)
-            }else{
+            } else {
                 repository.updateTodoItem(newItem)
             }
         }
     }
 
-    fun onDeleteClick(){
+    fun onDeleteClick() {
         viewModelScope.launch(Dispatchers.IO) {
             repository.removeTodoItem(item.value!!)
         }
@@ -76,7 +76,7 @@ class EditTodoViewModel(
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer{
+            initializer {
                 val rep = (this[APPLICATION_KEY] as MainApplication).repository
                 val saveStateHande = createSavedStateHandle()
                 EditTodoViewModel(rep, saveStateHande)

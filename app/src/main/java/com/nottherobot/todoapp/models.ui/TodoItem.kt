@@ -15,22 +15,22 @@ data class TodoItem(
     val modificationDate: LocalDate?
 )
 
-enum class Importance{
-    Default{
+enum class Importance {
+    Default {
         override val order = 1
         override val stringRes: Int
             get() = R.string.none
         override val colorRes: Int
             get() = R.color.label_primary
     },
-    Low{
+    Low {
         override val order = 0
         override val stringRes: Int
             get() = R.string.low
         override val colorRes: Int
             get() = R.color.label_primary
     },
-    High{
+    High {
         override val order = 2
         override val stringRes: Int
             get() = R.string.high
@@ -40,8 +40,10 @@ enum class Importance{
 
 
     abstract val order: Int
+
     @get:StringRes
     abstract val stringRes: Int
+
     @get:ColorRes
     abstract val colorRes: Int
 }
