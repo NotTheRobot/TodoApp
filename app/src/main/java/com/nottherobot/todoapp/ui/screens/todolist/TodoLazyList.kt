@@ -40,7 +40,7 @@ fun TodoLazyList(
     BoxWithConstraints(
         modifier = Modifier
             .layoutId("lazyColumn")
-            .padding(start = 8.dp, end = 8.dp, bottom = 88.dp)
+            .padding(start = 8.dp, end = 8.dp, bottom = 60.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(AppTheme.colors.backSecondary)
     ) {

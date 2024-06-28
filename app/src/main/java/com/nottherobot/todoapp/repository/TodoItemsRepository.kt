@@ -33,9 +33,10 @@ class TodoItemsRepository(
     fun updateTodoItem(item: TodoItem) {
         val index = src.indexOfFirst { it.id == item.id }
         if (index == -1) {
-            throw Exception("No such element")
+            src.add(item)
+        } else {
+            src[index] = item
         }
-        src[index] = item
         _todoItems.update { src.toList() }
     }
 

@@ -48,7 +48,8 @@ fun TodoListScreen(
         navigateToEdit = { navigateToEditTodo(it) },
         onCheckboxClicked = { todoItem, b -> vm.onCheckboxClicked(todoItem, b) },
         isShowDoneState = vm.isShowDone,
-        doneTasksCount = vm.doneTasksCount.intValue
+        doneTasksCount = vm.doneTasksCount.intValue,
+        vm.errorText.value
     )
 }
 
@@ -58,7 +59,8 @@ fun TodoListScreen(
     navigateToEdit: (String?) -> Unit,
     onCheckboxClicked: (TodoItem, Boolean) -> Unit,
     isShowDoneState: MutableState<Boolean>,
-    doneTasksCount: Int
+    doneTasksCount: Int,
+    errorText: String
 ) {
     var currentOffset by remember { mutableFloatStateOf(76.0f) }
     val maxPx = remember { 76.0f }
@@ -125,6 +127,7 @@ fun TodoListScreen(
                 colorFilter = ColorFilter.tint(AppTheme.colors.white)
             )
         }
+        ErrorMessage(text = errorText)
     }
 }
 
@@ -139,7 +142,8 @@ fun TodoListScreenPreview() {
             navigateToEdit = { },
             onCheckboxClicked = { todoItem, b -> },
             isShowDoneState = isShowDoneState,
-            doneTasksCount = 5
+            doneTasksCount = 5,
+            "error"
         )
     }
 }

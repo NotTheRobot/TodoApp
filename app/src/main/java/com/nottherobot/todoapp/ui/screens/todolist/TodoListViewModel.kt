@@ -1,6 +1,5 @@
 package com.nottherobot.todoapp.ui.screens.todolist
 
-import android.util.Log
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -15,6 +14,7 @@ import com.nottherobot.todoapp.repository.TodoItemsRepository
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -24,6 +24,7 @@ class TodoListViewModel(
     private val repository: TodoItemsRepository
 ) : ViewModel() {
 
+    val errorText = mutableStateOf("")
     val todoList = repository.todoItems
         .map { lst ->
             lst.countDoneAndInitialize()
@@ -39,7 +40,11 @@ class TodoListViewModel(
 
     private fun updateTask(item: TodoItem) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.updateTodoItem(item)
+            try {
+                repository.updateTodoItem(item)
+            } catch (e: Exception) {
+                showError(e.localizedMessage)
+            }
         }
     }
 
@@ -56,15 +61,21 @@ class TodoListViewModel(
 
     private fun List<TodoItem>.countDoneAndInitialize() {
         viewModelScope.launch(Dispatchers.IO) {
-            Log.d("kekw", "count thread: ${Thread.currentThread()}")
             doneTasksCount.intValue = this@countDoneAndInitialize.count { it.isDone }
         }
     }
 
     private fun List<TodoItem>.sortedByImportance(): Deferred<List<TodoItem>> {
         return viewModelScope.async(Dispatchers.IO) {
-            Log.d("kekw", "sorted thread: ${Thread.currentThread()}")
             this@sortedByImportance.sortedByDescending { it.importance.order }
+        }
+    }
+
+    private fun showError(text: String?) {
+        viewModelScope.launch {
+            errorText.value = text ?: "Unknown Error"
+            delay(5_000)
+            errorText.value = ""
         }
     }
 

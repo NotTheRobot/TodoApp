@@ -60,10 +60,16 @@ class EditTodoViewModel(
             modificationDate = if (item.value != null) LocalDate.now() else null
         )
         viewModelScope.launch(Dispatchers.IO) {
-            if (item.value == null) {
-                repository.addTodoItem(newItem)
-            } else {
-                repository.updateTodoItem(newItem)
+            try {
+                if (item.value == null) {
+                    repository.addTodoItem(newItem)
+                } else {
+                    repository.updateTodoItem(newItem)
+                }
+            } catch (e: Exception) {
+                // можно словить исключение только если выйдем за максимальный размер в длине массива (почти нереально)
+                // можно где-нибудь логировать исключение, но мне оно не надо
+                // поэтому просто выходим из экрана и ничего не сохраняем
             }
         }
     }
