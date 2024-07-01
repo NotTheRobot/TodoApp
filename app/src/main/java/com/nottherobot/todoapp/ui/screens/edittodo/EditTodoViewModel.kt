@@ -1,4 +1,4 @@
-package com.nottherobot.todoapp.ui
+package com.nottherobot.todoapp.ui.screens.edittodo
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
@@ -13,6 +13,7 @@ import com.nottherobot.todoapp.MainApplication
 import com.nottherobot.todoapp.models.ui.Importance
 import com.nottherobot.todoapp.models.ui.TodoItem
 import com.nottherobot.todoapp.repository.TodoItemsRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -21,7 +22,8 @@ import java.util.UUID
 class EditTodoViewModel(
     private val repository: TodoItemsRepository,
     private val savedStateHandle: SavedStateHandle,
-): ViewModel() {
+) : ViewModel() {
+
     private var id: String? = savedStateHandle.get<String>("itemId")
     val item = mutableStateOf<TodoItem?>(null)
     val text = mutableStateOf("")
@@ -36,41 +38,51 @@ class EditTodoViewModel(
                     lst.find { it.id == id }
                 }
                 .collect {
-                item.value = it
-                if(item.value != null) {
-                    text.value = item.value!!.text
-                    importance.value = item.value!!.importance
-                    deadlineDate.value = item.value!!.deadlineDate
-                    modificationDate.value = item.value!!.modificationDate
+                    item.value = it
+                    if (item.value != null) {
+                        text.value = item.value!!.text
+                        importance.value = item.value!!.importance
+                        deadlineDate.value = item.value!!.deadlineDate
+                        modificationDate.value = item.value!!.modificationDate
+                    }
                 }
+        }
+    }
+
+    fun onSaveClick() {
+        val newItem = TodoItem(
+            id = item.value?.id ?: (UUID.randomUUID().toString()),
+            text = text.value,
+            importance = importance.value,
+            deadlineDate = deadlineDate.value,
+            isDone = item.value?.isDone ?: false,
+            creationDate = item.value?.creationDate ?: LocalDate.now(),
+            modificationDate = if (item.value != null) LocalDate.now() else null
+        )
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (item.value == null) {
+                    repository.addTodoItem(newItem)
+                } else {
+                    repository.updateTodoItem(newItem)
+                }
+            } catch (e: Exception) {
+                // можно словить исключение только если выйдем за максимальный размер в длине массива (почти нереально)
+                // можно где-нибудь логировать исключение, но мне оно не надо
+                // поэтому просто выходим из экрана и ничего не сохраняем
             }
         }
     }
 
-    fun onSaveClick(){
-        val newItem = TodoItem(
-            id = if(item.value == null) UUID.randomUUID().toString() else item.value!!.id,
-            text = text.value,
-            importance = importance.value,
-            deadlineDate = deadlineDate.value,
-            isDone = if(item.value == null) false else item.value!!.isDone,
-            creationDate = if(item.value == null) LocalDate.now() else item.value!!.creationDate,
-            modificationDate = if(item.value != null) LocalDate.now() else null
-        )
-        if(item.value == null){
-            repository.addTodoItem(newItem)
-        }else{
-            repository.updateTodoItem(newItem)
+    fun onDeleteClick() {
+        viewModelScope.launch(Dispatchers.IO) {
+            repository.removeTodoItem(item.value!!)
         }
-    }
-
-    fun onDeleteClick(){
-        repository.removeTodoItem(item.value!!)
     }
 
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
-            initializer{
+            initializer {
                 val rep = (this[APPLICATION_KEY] as MainApplication).repository
                 val saveStateHande = createSavedStateHandle()
                 EditTodoViewModel(rep, saveStateHande)

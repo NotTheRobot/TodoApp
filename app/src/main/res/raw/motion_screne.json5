@@ -1,0 +1,154 @@
+{
+  ConstraintSets:{
+    start: {
+      headerBox: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 0],
+        height: 132,
+        alpha: 0.0
+      },
+      title: {
+        start: ['parent', 'start', 60],
+        top: [
+          'parent',
+          'top',
+          50
+        ],
+        custom: {
+          fontSize: 32,
+          lineHeight: 38,
+          letterSpacing: 0
+        }
+      },
+      subtitle: {
+        start: ['title', 'start', 0],
+        top: ['title', 'bottom', 4],
+        alpha: 1.0
+      },
+      lazyColumn: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: [
+          'parent',
+          'top',
+          132
+        ]
+        //        bottom: ['parent', 'bottom', 16],
+      },
+      eye: {
+        end: ['parent', 'end', 6],
+        top: [
+          'subtitle',
+          'top',
+          0
+        ],
+        bottom: [
+          'subtitle',
+          'bottom',
+          0
+        ]
+      },
+      fab: {
+        end: ['parent', 'end', 16],
+        bottom: ['parent', 'bottom', 40]
+      },
+      errorMessage: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'headerBox',
+          'bottom',
+          24
+        ]
+      }
+    },
+    end: {
+      headerBox: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: ['parent', 'top', 0],
+        height: 60,
+        alpha: 1.0
+      },
+      title: {
+        start: ['parent', 'start', 16],
+        top: ['eye', 'top', 0],
+        bottom: ['eye', 'bottom', 0],
+        custom: {
+          fontSize: 20,
+          lineHeight: 32,
+          letterSpacing: 0.5
+        }
+      },
+      subtitle: {
+        start: ['title', 'start', 0],
+        top: ['title', 'bottom', 4],
+        alpha: 0.0
+      },
+      lazyColumn: {
+        start: ['parent', 'start', 0],
+        end: ['parent', 'end', 0],
+        top: [
+          'parent',
+          'top',
+          52
+        ]
+        //        bottom: ['parent', 'bottom', 16],
+      },
+      eye: {
+        end: ['parent', 'end', 6],
+        top: [
+          'headerBox',
+          'top',
+          0
+        ],
+        bottom: [
+          'headerBox',
+          'bottom',
+          0
+        ]
+      },
+      fab: {
+        end: ['parent', 'end', 16],
+        bottom: ['parent', 'bottom', 40]
+      },
+      errorMessage: {
+        start: [
+          'parent',
+          'start',
+          0
+        ],
+        end: [
+          'parent',
+          'end',
+          0
+        ],
+        top: [
+          'headerBox',
+          'bottom',
+          24
+        ]
+      }
+    }
+  },
+  Transitions: {
+    default: {
+      from: 'start',
+      to: 'end',
+      onSwipe: {
+        anchor: 'headerBox',
+        direction: 'up',
+        side: 'top',
+      }
+    }
+  },
+}

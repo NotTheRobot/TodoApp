@@ -1,12 +1,16 @@
 package com.nottherobot.todoapp
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.nottherobot.todoapp.ui.EditTodoScreen
-import com.nottherobot.todoapp.ui.TodoListScreen
+import com.nottherobot.todoapp.ui.screens.edittodo.EditTodoScreen
+import com.nottherobot.todoapp.ui.screens.todolist.TodoListScreen
 
 interface NavigationDestination{
     val route: String
@@ -16,7 +20,9 @@ interface NavigationDestination{
 fun TodoAppScreen(navHostController: NavHostController = rememberNavController()){
     NavHost(
         navController = navHostController,
-        startDestination = TodoListScreen.route
+        startDestination = TodoListScreen.route,
+        modifier = Modifier
+            .windowInsetsPadding(WindowInsets.safeContent)
     ){
         composable(route = TodoListScreen.route) {
             TodoListScreen(
