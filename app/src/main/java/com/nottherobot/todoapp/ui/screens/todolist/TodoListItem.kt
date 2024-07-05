@@ -28,10 +28,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.nottherobot.todoapp.R
-import com.nottherobot.todoapp.models.ui.Importance
-import com.nottherobot.todoapp.models.ui.TodoItem
+import com.nottherobot.todoapp.ui.models.Importance
+import com.nottherobot.todoapp.ui.models.TodoItem
 import com.nottherobot.todoapp.ui.theme.AppTheme
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
@@ -140,10 +140,10 @@ fun TodoItemPreview() {
                     id = "0",
                     text = "Clean ass",
                     importance = Importance.High,
-                    deadlineDate = LocalDate.now(),
+                    deadlineDate = LocalDateTime.now(),
                     isDone = false,
-                    creationDate = LocalDate.now(),
-                    modificationDate = LocalDate.now(),
+                    creationDate = LocalDateTime.now(),
+                    modificationDate = LocalDateTime.now(),
                 ),
                 textWidth = maxWidth - 96.dp,
                 onCheckboxClick = { todoItem, b -> },

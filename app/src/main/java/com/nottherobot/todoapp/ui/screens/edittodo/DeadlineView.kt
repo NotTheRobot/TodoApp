@@ -35,13 +35,14 @@ import com.nottherobot.todoapp.R
 import com.nottherobot.todoapp.ui.theme.AppTheme
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeadlineView(
-    deadlineState: MutableState<LocalDate?>
+    deadlineState: MutableState<LocalDateTime?>
 ) {
     var deadline by deadlineState
     var isDialogOpen by remember {
@@ -118,7 +119,7 @@ fun DeadlineView(
                             deadline = Instant
                                 .ofEpochMilli(datePickerState.selectedDateMillis!!)
                                 .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
+                                .toLocalDateTime()
                             isDialogOpen = false
                         },
                         enabled = datePickerState.selectedDateMillis != null
@@ -180,7 +181,7 @@ fun DeadlineView(
 fun DeadlineViewPreview() {
     AppTheme {
         val deadline = remember {
-            mutableStateOf(LocalDate.now())
+            mutableStateOf(LocalDateTime.now())
         }
         DeadlineView(deadlineState = deadline)
     }

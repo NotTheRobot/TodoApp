@@ -29,8 +29,8 @@ import androidx.constraintlayout.compose.layoutId
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nottherobot.todoapp.NavigationDestination
 import com.nottherobot.todoapp.R
-import com.nottherobot.todoapp.models.ui.TodoItem
 import com.nottherobot.todoapp.repository.generateItems
+import com.nottherobot.todoapp.ui.models.TodoItem
 import com.nottherobot.todoapp.ui.theme.AppTheme
 
 object TodoListScreen : NavigationDestination {

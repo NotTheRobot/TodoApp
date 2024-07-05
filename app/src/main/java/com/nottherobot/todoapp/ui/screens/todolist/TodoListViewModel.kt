@@ -9,8 +9,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nottherobot.todoapp.MainApplication
-import com.nottherobot.todoapp.models.ui.TodoItem
+import com.nottherobot.todoapp.repository.RepositoryResult
 import com.nottherobot.todoapp.repository.TodoItemsRepository
+import com.nottherobot.todoapp.ui.models.TodoItem
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -25,10 +26,25 @@ class TodoListViewModel(
 ) : ViewModel() {
 
     val errorText = mutableStateOf("")
-    val todoList = repository.todoItems
-        .map { lst ->
-            lst.countDoneAndInitialize()
-            lst.sortedByImportance().await()
+    val todoList = repository.resultFlow
+        .map { result ->
+            when (result) {
+                is RepositoryResult.Success -> {
+                    result.todoItems.countDoneAndInitialize()
+                    result.todoItems.sortedByImportance().await()
+                }
+
+                is RepositoryResult.OnlyConnectionFailure -> {
+                    showError(result.connectionException.toString())
+                    result.todoItems.countDoneAndInitialize()
+                    result.todoItems.sortedByImportance().await()
+                }
+
+                else -> {
+                    showError("я не знаю что происходит если бы я знал, что происходит я не знаубврлврлврлврлврл")
+                    listOf<TodoItem>()
+                }
+            }
         }
         .stateIn(
             scope = viewModelScope,

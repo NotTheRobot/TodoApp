@@ -10,13 +10,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.nottherobot.todoapp.MainApplication
-import com.nottherobot.todoapp.models.ui.Importance
-import com.nottherobot.todoapp.models.ui.TodoItem
+import com.nottherobot.todoapp.repository.RepositoryResult
 import com.nottherobot.todoapp.repository.TodoItemsRepository
-import kotlinx.coroutines.Dispatchers
+import com.nottherobot.todoapp.ui.models.Importance
+import com.nottherobot.todoapp.ui.models.TodoItem
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.util.UUID
 
 class EditTodoViewModel(
@@ -28,14 +28,22 @@ class EditTodoViewModel(
     val item = mutableStateOf<TodoItem?>(null)
     val text = mutableStateOf("")
     val importance = mutableStateOf(Importance.Default)
-    val deadlineDate = mutableStateOf<LocalDate?>(null)
-    private val modificationDate = mutableStateOf<LocalDate?>(null)
+    val deadlineDate = mutableStateOf<LocalDateTime?>(null)
+    private val modificationDate = mutableStateOf<LocalDateTime?>(null)
 
     init {
         viewModelScope.launch {
-            repository.todoItems
-                .map { lst ->
-                    lst.find { it.id == id }
+            repository.resultFlow
+                .map { result ->
+                    when (result) {
+                        is RepositoryResult.Success -> {
+                            result.todoItems.find { it.id == id }
+                        }
+
+                        else -> {
+                            null
+                        }
+                    }
                 }
                 .collect {
                     item.value = it
@@ -56,10 +64,10 @@ class EditTodoViewModel(
             importance = importance.value,
             deadlineDate = deadlineDate.value,
             isDone = item.value?.isDone ?: false,
-            creationDate = item.value?.creationDate ?: LocalDate.now(),
-            modificationDate = if (item.value != null) LocalDate.now() else null
+            creationDate = item.value?.creationDate ?: LocalDateTime.now(),
+            modificationDate = LocalDateTime.now()
         )
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 if (item.value == null) {
                     repository.addTodoItem(newItem)
@@ -75,7 +83,7 @@ class EditTodoViewModel(
     }
 
     fun onDeleteClick() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             repository.removeTodoItem(item.value!!)
         }
     }
