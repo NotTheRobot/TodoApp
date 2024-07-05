@@ -8,10 +8,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object InstanceAPI {
     const val RevisionHeaderKey = "X-Last-Known-Revision"
-    private const val authHeaderKey = "Authorization: "
+    private const val authHeaderKey = "Authorization"
     private const val authToken = "Bearer Estel"
     private const val baseUrl = "https://hive.mrdekk.ru/todo/"
-    private const val failsGeneratorHeaderKey = "X-Generate-Fails: "
+    private const val failsGeneratorHeaderKey = "X-Generate-Fails"
     private val logging =
         HttpLoggingInterceptor().also { it.setLevel(HttpLoggingInterceptor.Level.BODY) }
     private val authInterceptor = Interceptor { chain ->

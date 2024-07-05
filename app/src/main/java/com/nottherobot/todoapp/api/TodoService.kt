@@ -11,7 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
-import retrofit2.http.Query
+import retrofit2.http.Path
 
 interface TodoService {
     @GET("list")
@@ -23,8 +23,8 @@ interface TodoService {
         @Body todoList: TodoListRequestDTO
     ): TodoListResponseDTO
 
-    @GET("list/")
-    suspend fun getTodoItem(@Query("id") id: String): TodoItemResponseDTO
+    @GET("list/{id}")
+    suspend fun getTodoItem(@Path("id") id: String): TodoItemResponseDTO
 
     @POST("list")
     suspend fun addTodoItem(
@@ -32,17 +32,17 @@ interface TodoService {
         @Body todoItem: TodoItemRequestDTO
     ): TodoItemResponseDTO
 
-    @PUT("list/")
+    @PUT("list/{id}")
     suspend fun updateTodoItem(
         @Header(InstanceAPI.RevisionHeaderKey) revision: String,
-        @Query("id") id: String,
+        @Path("id") id: String,
         @Body todoItem: TodoItemRequestDTO
     ): TodoItemResponseDTO
 
-    @DELETE("list/")
+    @DELETE("list/{id}")
     suspend fun deleteTodoItem(
         @Header(InstanceAPI.RevisionHeaderKey) revision: String,
-        @Query("id") id: String,
+        @Path("id") id: String,
         @Body todoItem: TodoItemRequestDTO
     ): TodoItemResponseDTO
 }

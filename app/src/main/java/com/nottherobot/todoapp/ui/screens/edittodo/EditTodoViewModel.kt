@@ -14,7 +14,6 @@ import com.nottherobot.todoapp.repository.RepositoryResult
 import com.nottherobot.todoapp.repository.TodoItemsRepository
 import com.nottherobot.todoapp.ui.models.Importance
 import com.nottherobot.todoapp.ui.models.TodoItem
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -68,7 +67,7 @@ class EditTodoViewModel(
             creationDate = item.value?.creationDate ?: LocalDateTime.now(),
             modificationDate = LocalDateTime.now()
         )
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             try {
                 if (item.value == null) {
                     repository.addTodoItem(newItem)
@@ -84,7 +83,7 @@ class EditTodoViewModel(
     }
 
     fun onDeleteClick() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             repository.removeTodoItem(item.value!!)
         }
     }

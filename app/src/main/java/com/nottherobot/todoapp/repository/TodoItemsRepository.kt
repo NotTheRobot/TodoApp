@@ -36,7 +36,6 @@ class TodoItemsRepository(
     init {
         repositoryScope.launch {
             revision.set(repositoryPref.getInt("revision", 1))
-            patchList()
             fetchList()
         }
     }
@@ -49,14 +48,20 @@ class TodoItemsRepository(
             )
             updateRevision(response.revision)
             src.add(response.todoItem.toTodoItem())
-            _resultFlow.update { RepositoryResult.Success(src) }
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
         } catch (e: Exception) {
             src.add(item)
-            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src, e) }
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
     }
 
     suspend fun updateTodoItem(item: TodoItem) {
+        val index = src.indexOfFirst { it.id == item.id }
+        if (index == -1) {
+            src.add(item)
+        } else {
+            src[index] = item
+        }
         try {
             val response = service.updateTodoItem(
                 revision.toString(),
@@ -64,22 +69,9 @@ class TodoItemsRepository(
                 TodoItemRequestDTO(item.toTodoItemDTO())
             )
             updateRevision(response.revision)
-            val newItem = response.todoItem.toTodoItem()
-            val index = src.indexOfFirst { it.id == newItem.id }
-            if (index == -1) {
-                src.add(newItem)
-            } else {
-                src[index] = newItem
-            }
-            _resultFlow.update { RepositoryResult.Success(src) }
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
         } catch (e: Exception) {
-            val index = src.indexOfFirst { it.id == item.id }
-            if (index == -1) {
-                src.add(item)
-            } else {
-                src[index] = item
-            }
-            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src, e) }
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
     }
 
@@ -92,10 +84,10 @@ class TodoItemsRepository(
             )
             updateRevision(response.revision)
             src.remove(response.todoItem.toTodoItem())
-            _resultFlow.update { RepositoryResult.Success(src) }
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
         } catch (e: Exception) {
             src.remove(item)
-            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src, e) }
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
     }
 
@@ -104,9 +96,9 @@ class TodoItemsRepository(
             val response = service.getTodoList()
             updateRevision(response.revision)
             src.addAll(response.todoList.map { it.toTodoItem() })
-            _resultFlow.update { RepositoryResult.Success(src) }
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
         } catch (e: Exception) {
-            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src, e) }
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
     }
 
@@ -118,9 +110,9 @@ class TodoItemsRepository(
             )
             updateRevision(response.revision)
             src.addAll(response.todoList.map { it.toTodoItem() })
-            _resultFlow.update { RepositoryResult.Success(src) }
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
         } catch (e: Exception) {
-            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src, e) }
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
     }
 
