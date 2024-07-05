@@ -18,9 +18,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.nottherobot.todoapp.NavigationDestination
-import com.nottherobot.todoapp.models.ui.Importance
+import com.nottherobot.todoapp.ui.models.Importance
 import com.nottherobot.todoapp.ui.theme.AppTheme
-import java.time.LocalDate
+import java.time.LocalDateTime
 
 object EditTodoScreen : NavigationDestination {
     override val route: String = "EditTodo"
@@ -50,7 +50,7 @@ fun EditTodoScreen(
     onSaveClick: () -> Unit,
     textState: MutableState<String>,
     importanceState: MutableState<Importance>,
-    deadlineState: MutableState<LocalDate?>,
+    deadlineState: MutableState<LocalDateTime?>,
     isAbleToDelete: Boolean,
     onDeleteClick: () -> Unit
 ) {
@@ -115,7 +115,7 @@ fun EditTodoScreenPreview() {
                 mutableStateOf(Importance.High)
             },
             deadlineState = remember {
-                mutableStateOf(LocalDate.now())
+                mutableStateOf(LocalDateTime.now())
             },
             isAbleToDelete = false,
             onDeleteClick = {}

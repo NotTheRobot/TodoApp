@@ -30,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.nottherobot.todoapp.R
-import com.nottherobot.todoapp.models.ui.Importance
+import com.nottherobot.todoapp.ui.models.Importance
 import com.nottherobot.todoapp.ui.theme.AppTheme
 
 @Composable

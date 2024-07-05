@@ -1,8 +1,8 @@
 package com.nottherobot.todoapp.repository
 
-import com.nottherobot.todoapp.models.ui.Importance
-import com.nottherobot.todoapp.models.ui.TodoItem
-import java.time.LocalDate
+import com.nottherobot.todoapp.ui.models.Importance
+import com.nottherobot.todoapp.ui.models.TodoItem
+import java.time.LocalDateTime
 import java.util.UUID
 import kotlin.math.abs
 import kotlin.random.Random
@@ -17,7 +17,7 @@ fun generateItems(count: Int): List<TodoItem> {
             """.trimMargin()
     )
     val importance = Importance.entries
-    val today = LocalDate.now()
+    val today = LocalDateTime.now()
     val deadline = today.plusDays(2L)
     val modDate = today.plusDays(1L)
 
@@ -31,7 +31,7 @@ fun generateItems(count: Int): List<TodoItem> {
                 if (it % 2 == 0) deadline else null,
                 Random.nextInt() % 2 == 0,
                 today,
-                if (it % 2 == 0) modDate else null
+                modDate
             )
         )
     }

@@ -25,8 +25,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.layoutId
 import com.nottherobot.todoapp.R
-import com.nottherobot.todoapp.models.ui.TodoItem
 import com.nottherobot.todoapp.repository.generateItems
+import com.nottherobot.todoapp.ui.models.TodoItem
 import com.nottherobot.todoapp.ui.theme.AppTheme
 
 @Composable
