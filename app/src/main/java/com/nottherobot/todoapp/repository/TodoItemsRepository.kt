@@ -1,87 +1,126 @@
 package com.nottherobot.todoapp.repository
 
-import com.nottherobot.todoapp.models.ui.Importance
-import com.nottherobot.todoapp.models.ui.TodoItem
+import android.content.SharedPreferences
+import com.nottherobot.todoapp.api.TodoService
+import com.nottherobot.todoapp.api.models.TodoItemRequestDTO
+import com.nottherobot.todoapp.api.models.TodoListRequestDTO
+import com.nottherobot.todoapp.api.models.toTodoItemDTO
+import com.nottherobot.todoapp.ui.models.TodoItem
+import com.nottherobot.todoapp.ui.models.toTodoItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.util.UUID
-import kotlin.math.abs
-import kotlin.random.Random
+import java.util.concurrent.atomic.AtomicInteger
 
-class TodoItemsRepository{
-    private val currentContext: CoroutineScope = CoroutineScope(Dispatchers.IO)
+class TodoItemsRepository(
+    private val service: TodoService,
+    private val repositoryPref: SharedPreferences
+) {
+    private val repositoryScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     private val src = mutableListOf<TodoItem>()
+    private val _resultFlow = MutableStateFlow<RepositoryResult>(
+        RepositoryResult.Success(
+            mutableListOf()
+        )
+    )
+    val resultFlow: StateFlow<RepositoryResult>
+        get() = _resultFlow.asStateFlow()
 
-    private val _todoItems = MutableStateFlow<List<TodoItem>>(mutableListOf())
-    val todoItems: StateFlow<List<TodoItem>>
-        get() = _todoItems.asStateFlow()
+    private var revision: AtomicInteger = AtomicInteger(-1)
 
     init {
-        currentContext.launch {
-            src.addAll(generateItems())
-            _todoItems.value = src.toList()
+        repositoryScope.launch {
+            revision.set(repositoryPref.getInt("revision", 1))
+            fetchList()
         }
     }
 
-    fun addTodoItem(item: TodoItem){
-        src.add(item)
-        _todoItems.value = src.toList()
-    }
-
-    fun updateTodoItem(item: TodoItem) {
-        var i = 0
-        while (i < src.size) {
-            if (src[i].id == item.id) {
-                src[i] = item
-                break
-            }
-            i++
-        }
-        if(i == src.toList().size){
-            throw Exception("No such element")
-        }
-        _todoItems.value = src.toList()
-    }
-
-    fun removeTodoItem(item: TodoItem) {
-        src.remove(item)
-        _todoItems.value = src.toList()
-    }
-
-    private fun generateItems(): MutableList<TodoItem> {
-        val text = listOf(
-            "маленький текст",
-            """очень большой текст очень большой текст очень большой текст очень большой текст 
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-                |очень большой текст очень большой текст очень большой текст очень большой текст
-            """.trimMargin()
-        )
-        val importance = listOf(Importance.Low, Importance.High, Importance.Default)
-        val today = LocalDate.now()
-        val deadline = LocalDate.now().also { it.plusDays(2L) }
-        val modDate = LocalDate.now().also { it.plusDays(1L) }
-
-        val lst = mutableListOf<TodoItem>()
-        repeat(30) {
-            lst.add(
-                TodoItem(
-                    UUID.randomUUID().toString(),
-                    text[abs(Random.nextInt() % 2)],
-                    importance[abs(Random.nextInt()) % 3],
-                    if (it % 2 == 0) deadline else null,
-                    Random.nextInt() % 2 == 0,
-                    today,
-                    if (it % 2 == 0) modDate else null
-                )
+    suspend fun addTodoItem(item: TodoItem) {
+        try {
+            val response = service.addTodoItem(
+                revision.toString(),
+                TodoItemRequestDTO(todoItem = item.toTodoItemDTO())
             )
+            updateRevision(response.revision)
+            src.add(response.todoItem.toTodoItem())
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
+        } catch (e: Exception) {
+            src.add(item)
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
         }
-        return lst
+    }
+
+    suspend fun updateTodoItem(item: TodoItem) {
+        val index = src.indexOfFirst { it.id == item.id }
+        if (index == -1) {
+            src.add(item)
+        } else {
+            src[index] = item
+        }
+        try {
+            val response = service.updateTodoItem(
+                revision.toString(),
+                item.id,
+                TodoItemRequestDTO(item.toTodoItemDTO())
+            )
+            updateRevision(response.revision)
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
+        } catch (e: Exception) {
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
+        }
+    }
+
+    suspend fun removeTodoItem(item: TodoItem) {
+        try {
+            val response = service.deleteTodoItem(
+                revision.toString(),
+                item.id,
+                TodoItemRequestDTO(item.toTodoItemDTO())
+            )
+            updateRevision(response.revision)
+            src.remove(response.todoItem.toTodoItem())
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
+        } catch (e: Exception) {
+            src.remove(item)
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
+        }
+    }
+
+    private suspend fun fetchList() {
+        try {
+            val response = service.getTodoList()
+            updateRevision(response.revision)
+            src.addAll(response.todoList.map { it.toTodoItem() })
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
+        } catch (e: Exception) {
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
+        }
+    }
+
+    private suspend fun patchList() {
+        try {
+            val response = service.patchTodoList(
+                revision.toString(),
+                TodoListRequestDTO(src.map { it.toTodoItemDTO() })
+            )
+            updateRevision(response.revision)
+            src.addAll(response.todoList.map { it.toTodoItem() })
+            _resultFlow.update { RepositoryResult.Success(src.toList()) }
+        } catch (e: Exception) {
+            _resultFlow.update { RepositoryResult.OnlyConnectionFailure(src.toList(), e) }
+        }
+    }
+
+    private fun updateRevision(newRevision: Int) {
+        revision.set(newRevision)
+        repositoryPref
+            .edit()
+            .putInt("revision", revision.get())
+            .apply()
     }
 }
